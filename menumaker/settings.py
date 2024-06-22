@@ -11,10 +11,15 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import environ
+import os
+# Initialise environment variables
+env = environ.Env()
+environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -25,7 +30,18 @@ SECRET_KEY = 'django-insecure-ttfx_8js9l9ku$9)p_67i@o9=xg+kd2-bhn=ct@5#s9$qkkn1^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://example.com",
+    "https://sub.example.com",
+    "http://localhost:8080",
+    "http://127.0.0.1:4200",
+    "http://localhost:4200",
+    "http://127.0.0.1:8080"
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Application definition
@@ -37,12 +53,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
+    'rest_framework',
     'api'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -77,10 +96,10 @@ WSGI_APPLICATION = 'menumaker.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'menumaker_new',
-        'PASSWORD': '',
-        'USER': 'root',
-        'HOST': 'localhost'
+        'NAME': env('DATABASE_NAME'),
+        'PASSWORD': env('DATABASE_PASSWORD'),
+        'USER': env('DATABASE_USER'),
+        'HOST': env('DATABASE_HOST')
     }
 }
 
@@ -127,3 +146,98 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+STATICFILES_DIRS = [STATIC_DIR]
+
+
+####################   Email configuration start    ######################################
+
+# SMTP email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # Backend for sending emails via SMTP
+
+# SMTP server details
+EMAIL_HOST = 'smtp.gmail.com'           # SMTP server address
+EMAIL_PORT = 587                        # SMTP port (typically 587 for TLS)
+EMAIL_USE_TLS = True                    # Whether to use TLS encryption
+EMAIL_HOST_USER = env('EMAIL')  # SMTP username
+EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD')  # SMTP password
+
+# Email address to send error notifications to (for 'AdminEmailHandler' handler)
+ADMINS = [
+    ('Aman Gupta', 'amangupta1542@gmail.com'),
+]
+
+# Subject prefix for email notifications
+EMAIL_SUBJECT_PREFIX = '[Menumaker Website Api Error] '
+
+# Default sender email address (optional)
+DEFAULT_FROM_EMAIL = env('EMAIL')
+FRONTEND_URL = 'http://localhost:4200/#'
+
+
+####################   Email configuration end ######################################
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        # 'applogfile': {
+        #     'level':'DEBUG',
+        #     'class':'logging.handlers.RotatingFileHandler',
+        #     'filename': os.path.join(BASE_DIR, 'menumaker.log'),
+        #     'maxBytes': 1024*1024*15, # 15MB
+        #     'backupCount': 10,
+        # },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'menumaker.log'),  # Specify the file path
+            'formatter': 'verbose',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            #  The require_debug_false filter ensures that error emails are only sent when DEBUG mode is turned off.
+            # 'filters': ['require_debug_false'], # Make sure the filter is correctly referenced here
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        },
+        'email': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'api': {
+            'handlers': ['console', 'file'],
+            # Add email to get error log on email
+            # 'handlers': ['console', 'file', 'email'],
+            # applogfile and mail_admins, just same as 'file' and 'email', you can uncomment next line, logging method will not affected
+            # 'handlers': ['console', 'applogfile', 'mail_admins'],
+            'level': 'DEBUG',
+        },
+    },
+}
