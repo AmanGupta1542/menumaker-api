@@ -13,7 +13,7 @@ import json
 import string
 import random
 import pytz
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 
 from .models import *
 from .serializers import *
@@ -236,3 +236,134 @@ class ChangePasswordAPIView(APIView):
             user.save()
             return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(['POST'])
+@permission_classes([CheckActiveUserPermission])
+def create_cuisine(request):
+    if UserCuisine.objects.filter(user=request.user, is_completed=False).exists():
+        return Response({'error': 'You have an incomplete cuisine. Please complete it before creating a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    serializer = UserCuisineSerializer(data=request.data)
+    if serializer.is_valid():
+        user = request.user
+
+        # Query for free tokens first
+        free_token_type = TokenType.objects.get(type='Free')
+        paid_token_type = TokenType.objects.get(type='Paid')
+        print(free_token_type)
+        print(paid_token_type)
+        user_tokens = UserToken.objects.filter(
+            user=user,
+            is_used=False,
+            used_token_count__lt=models.F('token_count')
+        ).order_by('created_at')
+        print(user_tokens)
+        free_tokens = user_tokens.filter(token_type=free_token_type)
+        paid_tokens = user_tokens.filter(token_type=paid_token_type)
+        print(free_tokens)
+        print(paid_tokens)
+        token = None
+
+        if free_tokens.exists():
+            token = free_tokens.first()
+        elif paid_tokens.exists():
+            token = paid_tokens.first()
+        print(token)
+        if token:
+            token.used_token_count += 1
+            if token.used_token_count >= token.token_count:
+                token.is_used = True
+            token.save()
+            
+            instance = serializer.save(user=request.user, token=token)
+            return Response(UserCuisineSerializer(instance).data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'error': 'Insufficient token'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT'])
+@permission_classes([CheckActiveUserPermission])
+def edit_cuisine_name(request, id):
+    try:
+        record = UserCuisine.objects.get(id=id, user=request.user)
+    except UserCuisine.DoesNotExist:
+        return Response({'error': 'Record not found or you do not have permission to edit this record.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if record.is_completed:
+        return Response({'error': "Can't modify name for completed cuisine."}, status=status.HTTP_400_BAD_REQUEST)
+
+    data = request.data
+    serializer = UserCuisineSerializer(record, data=data, partial=True)
+    
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([CheckActiveUserPermission])
+def add_dish(request):
+    dish_id = request.data.get('dish')
+
+    try:
+        dish = Dishes.objects.get(id=dish_id)
+    except Dishes.DoesNotExist:
+        return Response({'error': 'Dish not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        user_cuisine = UserCuisine.objects.get(user=request.user, is_completed=False)
+    except UserCuisine.DoesNotExist:
+        return Response({'error': 'No incomplete cuisine found.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    dish_data = {
+        'dish': dish.id,
+        'user': request.user.id,
+        'cuisine': user_cuisine.id
+    }
+
+    serializer = CuisineItemsSerializer(data=dish_data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT'])
+@permission_classes([CheckActiveUserPermission])
+def user_cuisine_detail(request, pk=None):
+    try:
+        if pk is None:
+            user_cuisine = UserCuisine.objects.get(user=request.user, is_completed=False)
+        else:
+            user_cuisine = UserCuisine.objects.get(pk=pk, user=request.user)
+    except UserCuisine.DoesNotExist:
+        return Response({'error': 'UserCuisine not found or already completed'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = CompleteUserCuisineSerializer(user_cuisine)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = CompleteUserCuisineSerializer(user_cuisine, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class UserCuisineListAPIView(generics.ListAPIView):
+    serializer_class = CompleteUserCuisineSerializer
+    permission_classes = [CheckActiveUserPermission]
+    pagination_class = MyPageNumberPagination
+
+    def get_queryset(self):
+        return UserCuisine.objects.filter(
+            user=self.request.user,
+            is_completed=True  # Filter where is_completed is True
+        ).order_by('-updated_at')

@@ -1,5 +1,6 @@
 
 from rest_framework import serializers
+from django.utils import timezone
 from .models import *
 
 class CustomUserIdNameEmailSerializer(serializers.ModelSerializer):
@@ -55,3 +56,28 @@ class ForgotPasswordSerializer(serializers.Serializer):
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
+
+
+class UserCuisineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserCuisine
+        fields = ['id', 'name', 'cuisine', 'user', 'token']
+        read_only_fields = ['cuisine', 'user', 'token']
+
+
+class CuisineItemsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CuisineItems
+        fields = ['dish', 'user', 'cuisine']
+
+class CompleteUserCuisineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserCuisine
+        fields = ['id', 'cuisine', 'name', 'is_completed', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'cuisine', 'name', 'created_at']  # Read-only fields
+
+    def update(self, instance, validated_data):
+        instance.is_completed = True
+        instance.updated_at = timezone.now()
+        instance.save()
+        return instance

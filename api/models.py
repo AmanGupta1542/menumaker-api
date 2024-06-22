@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from .managers import CustomUserManager
 from django.utils.translation import gettext_lazy as _
+import string
+import random
 
 class Countries(models.Model):
     code = models.CharField(max_length=2)
@@ -56,15 +58,15 @@ class UserCuisine(models.Model):
     is_completed = models.BooleanField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(null=True, blank=True)
+    token = models.ForeignKey(UserToken, on_delete=models.CASCADE, related_name='token_uses_ref')
 
-class TokenUsage(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='token_user')
-    token = models.ForeignKey(UserToken, on_delete=models.CASCADE, related_name='token_uses_from')
-    cuisine = models.ForeignKey(UserCuisine, on_delete=models.CASCADE, related_name='token_used_by')
-    created_at = models.DateTimeField(auto_now_add=True)
+    def save(self, *args, **kwargs):
+        if not self.cuisine:
+            self.cuisine = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+        super().save(*args, **kwargs)
 
-    class Meta:
-        unique_together = ('user', 'cuisine')
+    def __str__(self):
+        return self.name
 
 
 class MealTimes(models.Model):

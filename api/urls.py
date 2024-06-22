@@ -17,4 +17,10 @@ urlpatterns = [
     path('check-reset-token/<str:token>', check_reset_token, name='check-reset-token'),
     path('change-password/', ChangePasswordAPIView.as_view(), name='change-password'),
     path('users/', AllUsersListAPIView.as_view(), name='users'),
+    path('create-cuisine/', create_cuisine, name='create-cuisine'),
+    path('edit-cuisine-name/<int:id>/', edit_cuisine_name, name='edit_cuisine_name'),
+    path('add-dish/', add_dish, name='add-dish'),
+    path('user-cuisine/<int:pk>/', user_cuisine_detail, name='user-cuisine-detail'),
+    path('user-cuisine/', user_cuisine_detail, name='user-cuisine-detail-none'),
+    path('user-cuisine-list/', UserCuisineListAPIView.as_view(), name='user-cuisine-list'),
 ]

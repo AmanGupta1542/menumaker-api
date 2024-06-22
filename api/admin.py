@@ -30,11 +30,7 @@ class UserTokenAdmin(admin.ModelAdmin):
 
 @admin.register(UserCuisine)
 class UserCuisineAdmin(admin.ModelAdmin):
-    list_display = ['id', 'cuisine', 'name', 'user', 'is_completed',  'created_at', 'updated_at']
-
-@admin.register(TokenUsage)
-class TokenUsageAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'token', 'cuisine', 'created_at']
+    list_display = ['id', 'cuisine', 'name', 'user', 'is_completed', 'token', 'created_at', 'updated_at']
 
 @admin.register(MealTimes)
 class MealTimesAdmin(admin.ModelAdmin):
