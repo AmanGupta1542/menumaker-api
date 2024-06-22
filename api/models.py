@@ -74,10 +74,16 @@ class MealTimes(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class Cuisine(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    country = models.ForeignKey(Countries, on_delete=models.RESTRICT, related_name='cuisine_country')
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(CustomUser, on_delete=models.RESTRICT, related_name='cuisine_added_by')
+
 class Dishes(models.Model):
     name = models.CharField(max_length=255)
     meal_time = models.ForeignKey(MealTimes, on_delete=models.RESTRICT, related_name='dish_meal_time')
-    country = models.ForeignKey(Countries, on_delete=models.RESTRICT, related_name='dish_country')
+    cuisine = models.ForeignKey(Cuisine, on_delete=models.RESTRICT, related_name='cuisine')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(CustomUser, on_delete=models.RESTRICT, related_name='dish_added_by')

@@ -42,7 +42,13 @@ class MealTimesAdmin(admin.ModelAdmin):
 
 @admin.register(Dishes)
 class DishesAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'meal_time', 'country', 'is_active', 'created_at', 'created_by']
+    list_display = ['id', 'name', 'meal_time', 'cuisine', 'is_active', 'created_at', 'created_by']
+
+
+@admin.register(Cuisine)
+class CuisineAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'country', 'created_at', 'created_by']
+
 
 @admin.register(CuisineItems)
 class CuisineItemsAdmin(admin.ModelAdmin):
