@@ -424,3 +424,19 @@ class DeleteCuisineItemAPIView(APIView):
             return Response({'success': 'Cuisine item deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
         except CuisineItems.DoesNotExist:
             return Response({'error': 'Cuisine item not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+
+class VisitorCreateAPIView(APIView):
+    permission_classes = [permissions.AllowAny]  # Allow any to make it publicly accessible
+
+    def post(self, request, *args, **kwargs):
+        data = {
+            'ip_address': request.META.get('REMOTE_ADDR'),
+            'user_agent': request.META.get('HTTP_USER_AGENT'),
+        }
+        serializer = VisitorSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

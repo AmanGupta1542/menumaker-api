@@ -26,4 +26,5 @@ urlpatterns = [
     path('dishes/', DishesListAPIView.as_view(), name='dishes-list'),
     path('cuisine-items/', CuisineItemsListAPIView.as_view(), name='cuisine-items-list'),
     path('delete-cuisine-item/<int:dish_id>/', DeleteCuisineItemAPIView.as_view(), name='delete-cuisine-item'),
+    path('visitor/', VisitorCreateAPIView.as_view(), name='visitor-create'),
 ]

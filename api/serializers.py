@@ -103,3 +103,9 @@ class DishesSerializer(serializers.ModelSerializer):
                 if cuisine_item:
                     return True
         return False
+    
+
+class VisitorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Visitor
+        fields = ['ip_address', 'user_agent', 'timestamp']

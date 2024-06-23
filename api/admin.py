@@ -63,3 +63,8 @@ class DishIngedientsAdmin(admin.ModelAdmin):
 @admin.register(DishRecipe)
 class DishRecipeAdmin(admin.ModelAdmin):
     list_display = ['id', 'dish', 'recipe', 'created_at', 'created_by', 'updated_at', 'updated_by']
+
+
+@admin.register(Visitor)
+class VisitorAdmin(admin.ModelAdmin):
+    list_display = ['id', 'ip_address', 'user_agent', 'timestamp']
