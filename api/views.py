@@ -383,3 +383,44 @@ class DishesListAPIView(generics.ListAPIView):
         context = super().get_serializer_context()
         context.update({"request": self.request})
         return context
+    
+
+
+class CuisineItemsListAPIView(APIView):
+    permission_classes = [CheckActiveUserPermission]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        cuisine_id = self.request.query_params.get('cuisine_id', None)
+
+        if cuisine_id:
+            # Get all records of logged in user and cuisine with that cuisine id
+            cuisine_items = CuisineItems.objects.filter(user=user, cuisine=cuisine_id)
+        else:
+            # Get all records from CuisineItems where logged in user and cuisine_id from UserCuisine where is_completed=False
+            incomplete_cuisine = UserCuisine.objects.filter(user=user, is_completed=False).first()
+            if incomplete_cuisine:
+                cuisine_items = CuisineItems.objects.filter(user=user, cuisine=incomplete_cuisine)
+            else:
+                return Response({'error': 'No incomplete cuisine found for the user'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = CuisineItemsSerializer(cuisine_items, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class DeleteCuisineItemAPIView(APIView):
+    permission_classes = [CheckActiveUserPermission]
+
+    def delete(self, request, dish_id):
+        user = request.user
+        incomplete_cuisine = UserCuisine.objects.filter(user=user, is_completed=False).first()
+        
+        if not incomplete_cuisine:
+            return Response({'error': 'No incomplete cuisine found for the user'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            cuisine_item = CuisineItems.objects.get(user=user, cuisine=incomplete_cuisine, dish=dish_id)
+            cuisine_item.delete()
+            return Response({'success': 'Cuisine item deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except CuisineItems.DoesNotExist:
+            return Response({'error': 'Cuisine item not found'}, status=status.HTTP_404_NOT_FOUND)
