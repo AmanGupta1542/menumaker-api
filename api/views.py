@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.authentication import TokenAuthentication
+from rest_framework import generics, permissions
 from django.conf import settings
 from django.core.mail import send_mail
 import base64
@@ -14,6 +15,7 @@ import string
 import random
 import pytz
 from rest_framework.decorators import api_view, permission_classes
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import *
 from .serializers import *
@@ -21,6 +23,7 @@ from .authentication import *
 from .paginations import *
 from .custom_permissions import *
 from .user_token import generate_reset_token
+from .filters import DishesFilter
 
 from django.utils import timezone
 import logging
@@ -367,3 +370,16 @@ class UserCuisineListAPIView(generics.ListAPIView):
             user=self.request.user,
             is_completed=True  # Filter where is_completed is True
         ).order_by('-updated_at')
+    
+
+class DishesListAPIView(generics.ListAPIView):
+    queryset = Dishes.objects.all()
+    serializer_class = DishesSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = DishesFilter
+    pagination_class = MyPageNumberPagination
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context

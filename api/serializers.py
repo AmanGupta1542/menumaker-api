@@ -2,6 +2,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 from .models import *
+from .custom_permissions import CustomBasePermissions
 
 class CustomUserIdNameEmailSerializer(serializers.ModelSerializer):
     class Meta:
@@ -81,3 +82,24 @@ class CompleteUserCuisineSerializer(serializers.ModelSerializer):
         instance.updated_at = timezone.now()
         instance.save()
         return instance
+    
+
+
+class DishesSerializer(serializers.ModelSerializer):
+    add_in_cuisine = serializers.SerializerMethodField()
+    class Meta:
+        model = Dishes
+        fields = ['id', 'name', 'is_active', 'created_at', 'meal_time', 'cuisine', 'created_by', 'add_in_cuisine']
+
+    def get_add_in_cuisine(self, obj):
+        customBasePermissions = CustomBasePermissions()
+        user = customBasePermissions.get_user(self.context['request'])
+        if user:
+            # Check for incomplete UserCuisine record
+            user_cuisine = UserCuisine.objects.filter(user=user, is_completed=False).first()
+            if user_cuisine:
+                # Check if a matching CuisineItem exists
+                cuisine_item = CuisineItems.objects.filter(user=user, cuisine=user_cuisine, dish=obj).exists()
+                if cuisine_item:
+                    return True
+        return False
