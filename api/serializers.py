@@ -4,6 +4,7 @@ from django.utils import timezone
 from .models import *
 from .custom_permissions import CustomBasePermissions
 
+
 class CustomUserIdNameEmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
@@ -12,7 +13,7 @@ class CustomUserIdNameEmailSerializer(serializers.ModelSerializer):
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Countries
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'phone']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -41,14 +42,19 @@ class UserSerializer(serializers.ModelSerializer):
         return representation
 
 class LoginSerializer(serializers.ModelSerializer):
+    country = CountrySerializer()
+
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'first_name', 'last_name', 'mobile', 'country', 'is_superuser']
-    
-class LoginUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ['id', 'email', 'first_name', 'last_name', 'mobile', 'country', 'is_superuser']
+        fields = ['id', 'email', 'first_name', 'last_name', 'mobile', 'country']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Check if the requesting user is a superuser
+        request = self.context.get('request', None)
+        if request and request.user.is_superuser:
+            representation['is_superuser'] = instance.is_superuser
+        return representation
 
 
 class ForgotPasswordSerializer(serializers.Serializer):
@@ -85,27 +91,84 @@ class CompleteUserCuisineSerializer(serializers.ModelSerializer):
     
 
 
-class DishesSerializer(serializers.ModelSerializer):
-    add_in_cuisine = serializers.SerializerMethodField()
-    class Meta:
-        model = Dishes
-        fields = ['id', 'name', 'is_active', 'created_at', 'meal_time', 'cuisine', 'created_by', 'add_in_cuisine']
+# class DishesSerializer(serializers.ModelSerializer):
+#     add_in_cuisine = serializers.SerializerMethodField()
+#     image = serializers.SerializerMethodField()
 
-    def get_add_in_cuisine(self, obj):
-        customBasePermissions = CustomBasePermissions()
-        user = customBasePermissions.get_user(self.context['request'])
-        if user:
-            # Check for incomplete UserCuisine record
-            user_cuisine = UserCuisine.objects.filter(user=user, is_completed=False).first()
-            if user_cuisine:
-                # Check if a matching CuisineItem exists
-                cuisine_item = CuisineItems.objects.filter(user=user, cuisine=user_cuisine, dish=obj).exists()
-                if cuisine_item:
-                    return True
-        return False
+#     class Meta:
+#         model = Dishes
+#         fields = ['id', 'name', 'is_active', 'created_at', 'meal_time', 'cuisine', 'created_by', 'add_in_cuisine', 'image']
+
+#     def get_add_in_cuisine(self, obj):
+#         customBasePermissions = CustomBasePermissions()
+#         user = customBasePermissions.get_user(self.context['request'])
+#         if user:
+#             # Check for incomplete UserCuisine record
+#             user_cuisine = UserCuisine.objects.filter(user=user, is_completed=False).first()
+#             if user_cuisine:
+#                 # Check if a matching CuisineItem exists
+#                 cuisine_item = CuisineItems.objects.filter(user=user, cuisine=user_cuisine, dish=obj).exists()
+#                 if cuisine_item:
+#                     return True
+#         return False
+    
+    def get_image(self, obj):
+        # Get the first image for the dish
+        dish_image = DishImages.objects.filter(dish=obj).first()
+        if dish_image:
+            return dish_image.image.url  # Assuming 'image' is a FileField/ImageField in DishImage model
+        return None
     
 
 class VisitorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Visitor
         fields = ['ip_address', 'user_agent', 'timestamp']
+
+
+class MealTimesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MealTimes
+        fields = ['id', 'meal_name']
+
+class CuisineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cuisine
+        fields = ['id', 'name']
+
+class DishImagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DishImages
+        fields = ['id', 'image']
+
+class DishIngredientsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DishIngedients
+        fields = ['ingedients']
+
+class DishRecipeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DishRecipe
+        fields = ['recipe']
+
+class DishesSerializer(serializers.ModelSerializer):
+    meal_time = MealTimesSerializer()
+    cuisine = CuisineSerializer()
+    ingedients_for_dish = DishIngredientsSerializer(read_only=True)
+    recipe_for_dish = DishRecipeSerializer(read_only=True)  
+    img_for_dish = DishImagesSerializer(many=True, read_only=True)  # Assuming related_name is 'dish_images'
+    add_in_cuisine = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Dishes
+        fields = ['id', 'name', 'is_active', 'created_at', 'meal_time', 'cuisine', 'add_in_cuisine', 'ingedients_for_dish', 'recipe_for_dish', 'img_for_dish']
+
+    def get_add_in_cuisine(self, obj):
+        request = self.context.get('request')
+        customBasePermissions = CustomBasePermissions()
+        user = customBasePermissions.get_user(request)
+        if user and user.is_authenticated:
+            user_cuisine = UserCuisine.objects.filter(user=user, is_completed=False).first()
+            if user_cuisine:
+                return CuisineItems.objects.filter(user=user, cuisine=user_cuisine, dish=obj).exists()
+        return False

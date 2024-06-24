@@ -77,7 +77,7 @@ class UserAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [CheckActiveUserPermission]
     def get(self, request):
-        return Response(LoginUserSerializer(request.user).data)
+        return Response(LoginSerializer(request.user).data)
     
 class RefreshAPIView(APIView):
     def post(self, request):
@@ -440,3 +440,13 @@ class VisitorCreateAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class DishDetailView(generics.RetrieveAPIView):
+    queryset = Dishes.objects.all()
+    serializer_class = DishesSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context

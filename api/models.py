@@ -8,7 +8,7 @@ import random
 class Countries(models.Model):
     code = models.CharField(max_length=2)
     name = models.CharField(max_length=255, unique=True)
-    phone = models.CharField(max_length=15)
+    phone = models.IntegerField()
     symbol = models.CharField(max_length=10)
     capital = models.CharField(max_length=255)
     currency = models.CharField(max_length=3)
@@ -26,7 +26,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(_("email address"), unique=True)
     password = models.CharField(max_length=255)
     country = models.ForeignKey(Countries, on_delete=models.RESTRICT)
-    mobile = models.CharField(max_length=15, unique=True)
+    mobile = models.BigIntegerField(unique=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -103,7 +103,7 @@ class CuisineItems(models.Model):
 
 class DishImages(models.Model):
     dish = models.ForeignKey(Dishes, on_delete=models.RESTRICT, related_name='img_for_dish')
-    image = models.ImageField(upload_to='dish_images')
+    image = models.ImageField(upload_to='static/dish_images')
     alt = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
