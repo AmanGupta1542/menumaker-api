@@ -16,6 +16,7 @@ import random
 import pytz
 from rest_framework.decorators import api_view, permission_classes
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Sum
 
 from .models import *
 from .serializers import *
@@ -349,11 +350,11 @@ def user_cuisine_detail(request, pk=None):
         return Response({'error': 'UserCuisine not found or already completed'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = CompleteUserCuisineSerializer(user_cuisine)
+        serializer = UserCuisineDetailsSerializer(user_cuisine)
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        serializer = CompleteUserCuisineSerializer(user_cuisine, data=request.data, partial=True)
+        serializer = UserCuisineDetailsSerializer(user_cuisine, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -450,3 +451,28 @@ class DishDetailView(generics.RetrieveAPIView):
         context = super().get_serializer_context()
         context.update({"request": self.request})
         return context
+    
+
+class CountryListView(generics.ListAPIView):
+    queryset = Countries.objects.all().order_by('name')
+    serializer_class = CountrySerializer
+    
+
+@api_view(['GET'])
+@permission_classes([CheckActiveUserPermission])
+def get_user_tokens(request):
+    user = request.user
+    tokens = UserToken.objects.filter(user=user).order_by('-created_at')
+    serializer = UserTokenSerializer(tokens, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([CheckActiveUserPermission])
+def get_sum_of_tokens(request):
+    try:
+        user = request.user
+        total_tokens = UserToken.objects.filter(user=user).aggregate(Sum('token_count'))['token_count__sum'] or 0
+        return Response({'total_tokens': total_tokens}, status=status.HTTP_200_OK)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)

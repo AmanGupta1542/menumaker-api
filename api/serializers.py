@@ -172,3 +172,51 @@ class DishesSerializer(serializers.ModelSerializer):
             if user_cuisine:
                 return CuisineItems.objects.filter(user=user, cuisine=user_cuisine, dish=obj).exists()
         return False
+    
+
+class DishesSerializer2(serializers.ModelSerializer):
+    meal_time = MealTimesSerializer()
+    cuisine = CuisineSerializer()
+
+    class Meta:
+        model = Dishes
+        fields = ['id', 'name', 'meal_time', 'cuisine']
+
+
+class CuisineItemsSerializer2(serializers.ModelSerializer):
+    dish = DishesSerializer2()
+
+    class Meta:
+        model = CuisineItems
+        fields = ['id', 'dish']
+
+class UserCuisineDetailsSerializer(serializers.ModelSerializer):
+    belong_to_cuisine = CuisineItemsSerializer2(many=True, read_only=True)
+
+    class Meta:
+        model = UserCuisine
+        fields = ['id', 'cuisine', 'name', 'is_completed', 'created_at', 'updated_at', 'belong_to_cuisine']
+
+    # def update(self, instance, validated_data):
+    #     instance.is_completed = True
+    #     instance.updated_at = timezone.now()
+    #     instance.save()
+    #     return instance
+
+
+class TokenTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TokenType
+        fields = ['type']  
+
+class UserCuisineSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = UserCuisine
+        fields = ['id', 'name', 'cuisine', 'is_completed', 'created_at', 'updated_at']
+
+class UserTokenSerializer(serializers.ModelSerializer):
+    token_type = TokenTypeSerializer()
+    token_uses_ref = UserCuisineSerializer2(many=True, read_only=True)
+    class Meta:
+        model = UserToken
+        fields = ['id', 'token_count', 'created_at', 'token_type', 'token_uses_ref']

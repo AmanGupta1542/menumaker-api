@@ -28,4 +28,7 @@ urlpatterns = [
     path('delete-cuisine-item/<int:dish_id>/', DeleteCuisineItemAPIView.as_view(), name='delete-cuisine-item'),
     path('visitor/', VisitorCreateAPIView.as_view(), name='visitor-create'),
     path('dish-details/<int:pk>/', DishDetailView.as_view(), name='dish-details'),
+    path('countries/', CountryListView.as_view(), name='countries'),
+    path('get-total-tokens/', get_sum_of_tokens, name='get-total-tokens'),
+    path('get-tokens-history/', get_user_tokens, name='get-tokens-history'),
 ]
