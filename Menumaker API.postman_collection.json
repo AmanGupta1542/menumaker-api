@@ -1,0 +1,634 @@
+{
+	"info": {
+		"_postman_id": "e5eaea13-5b62-4867-8c70-13294f2e4d78",
+		"name": "Menumaker API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18579814",
+		"_collection_link": "https://mistpl-svast-api.postman.co/workspace/New-Team-Workspace~c799645e-398a-4dcf-992f-969e2ce99d0a/collection/18579814-e5eaea13-5b62-4867-8c70-13294f2e4d78?action=share&source=collection_link&creator=18579814"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the response body as JSON\r",
+									"var responseBody = pm.response.json();\r",
+									"\r",
+									"// Extract the token from the response body (replace \"token\" with the actual key in your response)\r",
+									"var token = responseBody.token;\r",
+									"\r",
+									"// Store the token in an environment variable\r",
+									"pm.environment.set(\"access_token\", token);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "// {\r\n//     \"email\": \"utkarsh@test.com\",\r\n//     \"password\": \"utkarsh\"\r\n// }\r\n\r\n{\r\n    \"email\": \"test3@test.com\",\r\n    \"password\": \"test3\" \r\n}\r\n\r\n// {\r\n//     \"email\": \"amangupta1542@gmail.com\",\r\n//     \"password\": \"aman\"\r\n// }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"utkarsh@test.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/forgot-password/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"forgot-password",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Reset Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/check-reset-token/eyJ1c2VyX2lkIjogMiwgInRpbWVzdGFtcCI6IDE3MTkwNzk2OTAuOTA5ODg4MywgInRva2VuIjogIjJycDdreF9ITG9weWRESnVwYUgwYlRYYnVmZUNvTjFxOTEzWTJTRXZqNXcifQ==.70fadee74988e3df7591d42630b174abac726c2f1ad342534e932ac2b18deedb",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"check-reset-token",
+								"eyJ1c2VyX2lkIjogMiwgInRpbWVzdGFtcCI6IDE3MTkwNzk2OTAuOTA5ODg4MywgInRva2VuIjogIjJycDdreF9ITG9weWRESnVwYUgwYlRYYnVmZUNvTjFxOTEzWTJTRXZqNXcifQ==.70fadee74988e3df7591d42630b174abac726c2f1ad342534e932ac2b18deedb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"eyJ1c2VyX2lkIjogMiwgInRpbWVzdGFtcCI6IDE3MTkwNzk2OTAuOTA5ODg4MywgInRva2VuIjogIjJycDdreF9ITG9weWRESnVwYUgwYlRYYnVmZUNvTjFxOTEzWTJTRXZqNXcifQ==.70fadee74988e3df7591d42630b174abac726c2f1ad342534e932ac2b18deedb\",\r\n    \"password\": \"utkarsh\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/reset-password/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"reset-password",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the response body as JSON\r",
+									"var responseBody = pm.response.json();\r",
+									"\r",
+									"// Extract the token from the response body (replace \"token\" with the actual key in your response)\r",
+									"var token = responseBody.token;\r",
+									"\r",
+									"// Store the token in an environment variable\r",
+									"pm.environment.set(\"access_token\", token);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"old_password\": \"utkarsh\",\r\n    \"new_password\": \"utkarshdixit\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/change-password/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"change-password",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Get Loggedin User",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/user",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/users/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"first_name\": \"test1\",\r\n  \"last_name\": \"test1\",\r\n  \"email\": \"test2@test.com\",\r\n  \"password\": \"test1\",\r\n  \"country\": 103,\r\n  \"mobile\": 8334567890\r\n  // \"is_staff\": true,\r\n  // \"is_superuser\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/register/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"register",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Cuisine",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Celebration2\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/create-cuisine/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"create-cuisine",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Cuisine Name",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"My Birthday Party\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/edit-cuisine-name/10/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"edit-cuisine-name",
+						"10",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Dish in Cuisine",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"dish\": 243\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/add-dish/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"add-dish",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Cuisine Detail",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/user-cuisine/13/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"user-cuisine",
+						"13",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Complete User Cuisine",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/user-cuisine/12/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"user-cuisine",
+						"12",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Cuisines List",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/user-cuisine-list/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"user-cuisine-list",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Dishes Filter",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/dishes?name=samosa&meal_time=breakfastd",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"dishes"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "samosa"
+						},
+						{
+							"key": "meal_time",
+							"value": "breakfastd"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cuisine Items",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/cuisine-items/?cuisine_id=13",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"cuisine-items",
+						""
+					],
+					"query": [
+						{
+							"key": "cuisine_id",
+							"value": "13"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Cuisine Item",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/delete-cuisine-item?dish_id=244",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"delete-cuisine-item"
+					],
+					"query": [
+						{
+							"key": "dish_id",
+							"value": "244"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Dish Details",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/dish-details/243/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"dish-details",
+						"243",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

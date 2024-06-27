@@ -17,6 +17,13 @@ import pytz
 from rest_framework.decorators import api_view, permission_classes
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Sum
+from social_django.utils import load_strategy, load_backend
+from social_core.exceptions import MissingBackend
+from social_core.exceptions import AuthException
+from django.contrib.auth import login
+from google.oauth2 import id_token
+from google.auth.transport import requests
+# from rest_framework_jwt.settings import api_settings
 
 from .models import *
 from .serializers import *
@@ -476,3 +483,114 @@ def get_sum_of_tokens(request):
         return Response({'total_tokens': total_tokens}, status=status.HTTP_200_OK)
     except CustomUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+
+# class GoogleView(APIView):
+#     def post(self, request):
+#         import requests
+#         backend = 'google-oauth2'
+#         token = request.data.get('token')
+#         try:
+#             strategy = load_strategy(request)
+#             backend = load_backend(strategy, backend, redirect_uri=None)
+#             user = backend.do_auth(token)
+#             print(user)
+#         except MissingBackend:
+#             print({'error': 'Invalid backend'})
+#             return Response({'error': 'Invalid backend'}, status=status.HTTP_404_NOT_FOUND)
+#         except Exception as e:
+#             print(f'Error: {e}')
+#             return Response({'error': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+#         # print(token)
+#         # r = requests.get('https://www.googleapis.com/oauth2/v2/userinfo', params={'access_token': token})
+#         # data = json.loads(r.text)
+
+#         # if 'error' in data:
+#         #     content = {'message': 'wrong google token / this google token is already expired.'}
+#         #     return Response(content)
+#         return Response({'token': token, 'data': data}, status=status.HTTP_200_OK)
+    # backend = 'google-oauth2'
+    # return ""
+    # try:
+    #     strategy = load_strategy(request)
+    #     backend = load_backend(strategy, backend, redirect_uri=None)
+    #     user = backend.do_auth(token)
+    #     print(user)
+    #     if user:
+    #         login(request, user)
+    #         serializer = LoginSerializer(instance=user)
+    #         # jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+    #         # jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+    #         # payload = jwt_payload_handler(user)
+    #         # jwt_token = jwt_encode_handler(payload)
+    #         # return JsonResponse({'token': jwt_token})
+    #         access_token = create_access_token(user.id)
+    #         refresh_token = create_refresh_token(user.id)
+    #         response = Response()
+    #         expiry_time = datetime.datetime.now() + timedelta(days=7)  # Expires in 7 days
+    #         # be carefull with attribute samesite
+    #         # response.set_cookie(key='refreshToken', value=refresh_token, httponly=True, expires=expiry_time, samesite='None', secure=True)
+    #         response.set_cookie(key='refreshToken', value=refresh_token, expires=expiry_time, samesite='None', secure=True)
+    #         response.data = {
+    #             'token': access_token,
+    #             'user': serializer.data
+    #         }
+    #         return response
+    # except MissingBackend:
+    #     print({'error': 'Invalid backend'})
+    #     # return JsonResponse({'error': 'Invalid backend'}, status=400)
+
+
+def verify_google_token(token):
+    try:
+        # Specify the CLIENT_ID of the app that accesses the backend
+        idinfo = id_token.verify_oauth2_token(token, requests.Request(), '266358466687-fnci5rjivoprv2cnrss8bhmgdpingnoh.apps.googleusercontent.com')
+
+        # ID token is valid. Get the user's Google Account ID from the decoded token
+        userid = idinfo['sub']
+        print(idinfo)
+        return idinfo
+    except ValueError:
+        # Invalid token
+        return None
+    
+
+@api_view(['POST'])
+def google_login(request):
+    token = request.data.get('token')
+    if not token:
+        return Response({'error': 'Token is required'}, status=400)
+
+    idinfo = verify_google_token(token)
+    if not idinfo:
+        return Response({'error': 'Invalid token'}, status=400)
+
+    backend = 'google-oauth2'
+
+    email = idinfo.get('email')
+    name = idinfo.get('name')
+    
+    try:
+        user = CustomUser.objects.get(email=email)
+        if user and user.is_active:
+            pass
+        else:
+            return Response({'error': 'Authentication failed'}, status=401)
+    except CustomUser.DoesNotExist:
+        user = CustomUser(email=email)
+        user.set_unusable_password()
+        user.save()
+
+    serializer = LoginSerializer(instance=user)
+        
+    access_token = create_access_token(user.id)
+    refresh_token = create_refresh_token(user.id)
+    response = Response()
+    expiry_time = datetime.datetime.now() + timedelta(days=7)  # Expires in 7 days
+    response.set_cookie(key='refreshToken', value=refresh_token, expires=expiry_time, samesite='None', secure=True)
+    response.data = {
+        'token': access_token,
+        'user': serializer.data
+    }
+    return response

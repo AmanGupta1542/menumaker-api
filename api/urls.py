@@ -31,4 +31,5 @@ urlpatterns = [
     path('countries/', CountryListView.as_view(), name='countries'),
     path('get-total-tokens/', get_sum_of_tokens, name='get-total-tokens'),
     path('get-tokens-history/', get_user_tokens, name='get-tokens-history'),
+    path('google-login-data/', google_login, name='google-login-data'),
 ]

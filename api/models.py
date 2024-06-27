@@ -25,8 +25,8 @@ class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(_("email address"), unique=True)
     password = models.CharField(max_length=255)
-    country = models.ForeignKey(Countries, on_delete=models.RESTRICT)
-    mobile = models.BigIntegerField(unique=True)
+    country = models.ForeignKey(Countries, on_delete=models.RESTRICT, blank=True, null=True)
+    mobile = models.BigIntegerField(blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
