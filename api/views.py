@@ -23,6 +23,8 @@ from social_core.exceptions import AuthException
 from django.contrib.auth import login
 from google.oauth2 import id_token
 from google.auth.transport import requests
+import razorpay
+from django.http import JsonResponse
 # from rest_framework_jwt.settings import api_settings
 
 from .models import *
@@ -594,3 +596,38 @@ def google_login(request):
         'user': serializer.data
     }
     return response
+
+
+@api_view(['POST'])
+def create_order(request):
+    amount = request.data.get('amount')
+    tokens = request.data.get('tokens')
+
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    payment = client.order.create({'amount': amount * 100, 'currency': 'INR', 'payment_capture': '1'})
+    
+    return JsonResponse({
+        'order_id': payment['id'],
+        'amount': amount,
+        'tokens': tokens,
+        'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+    })
+
+@api_view(['POST'])
+def payment_callback(request):
+    payment_id = request.data.get('razorpay_payment_id')
+    order_id = request.data.get('razorpay_order_id')
+    signature = request.data.get('razorpay_signature')
+
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    try:
+        client.utility.verify_payment_signature({
+            'razorpay_order_id': order_id,
+            'razorpay_payment_id': payment_id,
+            'razorpay_signature': signature,
+        })
+        # Payment is successful
+        # Update user tokens here
+        return JsonResponse({'status': 'Payment successful'})
+    except:
+        return JsonResponse({'status': 'Payment failed'}, status=400)

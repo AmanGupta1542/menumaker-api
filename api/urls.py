@@ -32,4 +32,6 @@ urlpatterns = [
     path('get-total-tokens/', get_sum_of_tokens, name='get-total-tokens'),
     path('get-tokens-history/', get_user_tokens, name='get-tokens-history'),
     path('google-login-data/', google_login, name='google-login-data'),
+    path('create-order/', create_order, name='create-order'),
+    path('payment-callback/', payment_callback, name='payment-callback'),
 ]
