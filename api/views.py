@@ -599,12 +599,22 @@ def google_login(request):
 
 
 @api_view(['POST'])
+@permission_classes([CheckActiveUserPermission])
 def create_order(request):
     amount = request.data.get('amount')
     tokens = request.data.get('tokens')
+    user = request.user
 
     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
     payment = client.order.create({'amount': amount * 100, 'currency': 'INR', 'payment_capture': '1'})
+
+    Payment.objects.create(
+        user=user,
+        order_id=payment['id'],
+        amount=amount,
+        tokens=tokens,
+        status='created'
+    )
     
     return JsonResponse({
         'order_id': payment['id'],
@@ -614,6 +624,7 @@ def create_order(request):
     })
 
 @api_view(['POST'])
+@permission_classes([CheckActiveUserPermission])
 def payment_callback(request):
     payment_id = request.data.get('razorpay_payment_id')
     order_id = request.data.get('razorpay_order_id')
@@ -627,7 +638,33 @@ def payment_callback(request):
             'razorpay_signature': signature,
         })
         # Payment is successful
+        payment = Payment.objects.get(order_id=order_id)
+        payment.payment_id = payment_id
+        payment.signature = signature
+        payment.status = 'successful'
+        payment.save()
+
+        # Update user tokens
+        user_tokens, created = UserToken.objects.get_or_create(user=request.user, payment=payment, token_count=payment.tokens, token_type=TokenType.objects.get(type='Paid'))
+        user_tokens.save()
+
         # Update user tokens here
         return JsonResponse({'status': 'Payment successful'})
     except:
+        payment = Payment.objects.get(order_id=order_id)
+        payment.status = 'failed'
+        payment.save()
         return JsonResponse({'status': 'Payment failed'}, status=400)
+    
+
+@api_view(['POST'])
+def payment_dismissed(request):
+    order_id = request.data.get('order_id')
+
+    try:
+        payment = Payment.objects.get(order_id=order_id)
+        payment.status = 'dismissed'
+        payment.save()
+        return JsonResponse({'status': 'Payment dismissed'})
+    except Payment.DoesNotExist:
+        return JsonResponse({'error': 'Order not found'}, status=404)

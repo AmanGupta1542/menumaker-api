@@ -35,7 +35,18 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
-    
+
+
+class Payment(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    order_id = models.CharField(max_length=255, unique=True)
+    payment_id = models.CharField(max_length=255, blank=True, null=True)
+    signature = models.CharField(max_length=255, blank=True, null=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    tokens = models.PositiveIntegerField()
+    status = models.CharField(max_length=20, choices=[('created', 'Created'), ('successful', 'Successful'), ('failed', 'Failed'), ('dismissed', 'Dismissed')], default='created')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)  
 
 class TokenType(models.Model):
     type = models.CharField(max_length=50, unique=True)
@@ -48,6 +59,7 @@ class UserToken(models.Model):
     token_type = models.ForeignKey(TokenType, on_delete=models.CASCADE, related_name='token_type_for_user')
     is_used = models.BooleanField(default=0)
     used_token_count = models.IntegerField(default=0)
+    payment = models.ForeignKey(Payment, related_name='payment_ref', null=True, blank=True, on_delete=models.RESTRICT)
     created_at = models.DateTimeField(auto_now_add=True)
 
 

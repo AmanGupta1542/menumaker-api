@@ -268,5 +268,5 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',
 )
 
-RAZORPAY_KEY_ID = 'rzp_live_o1g9bxiiMGtJy6'
-RAZORPAY_KEY_SECRET = '6Nui9PCMdOFRDrkRnEg11Vd1'
+RAZORPAY_KEY_ID = 'rzp_test_0HeBFJ0U8kNBEv'
+RAZORPAY_KEY_SECRET = 'vdKWjvUag4L702YY9VAlZjo5'

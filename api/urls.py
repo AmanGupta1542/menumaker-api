@@ -34,4 +34,5 @@ urlpatterns = [
     path('google-login-data/', google_login, name='google-login-data'),
     path('create-order/', create_order, name='create-order'),
     path('payment-callback/', payment_callback, name='payment-callback'),
+    path('payment-dismissed/', payment_dismissed, name='payment-dismissed'),
 ]
