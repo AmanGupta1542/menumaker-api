@@ -25,6 +25,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 import razorpay
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 # from rest_framework_jwt.settings import api_settings
 
 from .models import *
@@ -297,25 +298,24 @@ def create_cuisine(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['PUT'])
+@api_view(['PATCH'])
 @permission_classes([CheckActiveUserPermission])
-def edit_cuisine_name(request, id):
+def edit_cuisine_name(request):
+    name = request.data.get('name')
+    
     try:
-        record = UserCuisine.objects.get(id=id, user=request.user)
+        user_cuisine  = UserCuisine.objects.get(is_completed=False, user=request.user)
+        if name is None: return Response({'error': "Name can not be empty"}, status=status.HTTP_400_BAD_REQUEST)
+        if not name.strip(): return Response({'error': "Name can not be empty"}, status=status.HTTP_400_BAD_REQUEST)
+        user_cuisine.name = name
+        user_cuisine.updated_at = timezone.now()
+        user_cuisine.save()
+        return Response({'status': 'Name updated successfully'}, status=status.HTTP_200_OK)
     except UserCuisine.DoesNotExist:
         return Response({'error': 'Record not found or you do not have permission to edit this record.'}, status=status.HTTP_404_NOT_FOUND)
-    
-    if record.is_completed:
-        return Response({'error': "Can't modify name for completed cuisine."}, status=status.HTTP_400_BAD_REQUEST)
-
-    data = request.data
-    serializer = UserCuisineSerializer(record, data=data, partial=True)
-    
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print(e)
+        return Response({'error':'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -347,7 +347,7 @@ def add_dish(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'PUT'])
+@api_view(['GET'])
 @permission_classes([CheckActiveUserPermission])
 def user_cuisine_detail(request, pk=None):
     try:
@@ -361,14 +361,27 @@ def user_cuisine_detail(request, pk=None):
     if request.method == 'GET':
         serializer = UserCuisineDetailsSerializer(user_cuisine)
         return Response(serializer.data)
-
-    elif request.method == 'PUT':
-        serializer = UserCuisineDetailsSerializer(user_cuisine, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
     
+
+@api_view(['PATCH'])
+@permission_classes([CheckActiveUserPermission])
+def mark_cuisine_complete(request):
+    user = request.user
+    
+    try:
+        user_cuisine = UserCuisine.objects.get(user=user, is_completed=False)
+        total_cuisine_items = CuisineItems.objects.filter(user=user, cuisine=user_cuisine).count()
+        if(total_cuisine_items > 0):
+            return Response({'error': 'Add atleast one item to complete you menu'}, status=status.HTTP_400_BAD_REQUEST)
+        user_cuisine.is_completed = True
+        user_cuisine.updated_at = timezone.now()
+        user_cuisine.save()
+        
+        return Response({'status': 'Cuisine marked as completed'}, status=status.HTTP_200_OK)
+    except UserCuisine.DoesNotExist:
+        return Response({'error': 'No incomplete cuisine found for this user'}, status=status.HTTP_404_NOT_FOUND)
 
 class UserCuisineListAPIView(generics.ListAPIView):
     serializer_class = CompleteUserCuisineSerializer
@@ -482,7 +495,9 @@ def get_sum_of_tokens(request):
     try:
         user = request.user
         total_tokens = UserToken.objects.filter(user=user).aggregate(Sum('token_count'))['token_count__sum'] or 0
-        return Response({'total_tokens': total_tokens}, status=status.HTTP_200_OK)
+        total_cuisine = UserCuisine.objects.filter(user=user).count()
+        remaining_tokens = total_tokens - total_cuisine
+        return Response({'total_tokens': total_tokens, 'remaining_tokens': remaining_tokens}, status=status.HTTP_200_OK)
     except CustomUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     
@@ -668,3 +683,44 @@ def payment_dismissed(request):
         return JsonResponse({'status': 'Payment dismissed'})
     except Payment.DoesNotExist:
         return JsonResponse({'error': 'Order not found'}, status=404)
+
+
+@api_view(['POST'])
+def check_email(request):
+    email = request.data.get('email')
+    if not email:
+        return Response({'error': 'Email is required'}, status=400)
+    
+    email_exists = CustomUser.objects.filter(email=email).exists()
+    return Response({'exists': email_exists})
+
+
+@api_view(['POST'])
+def check_mobile(request):
+    mobile = request.data.get('mobile')
+    if not mobile:
+        return Response({'error': 'Mobile is required'}, status=400)
+    
+    mobile_exists = CustomUser.objects.filter(mobile=mobile).exists()
+    return Response({'exists': mobile_exists})
+
+
+@api_view(['PUT'])
+@permission_classes([CheckActiveUserPermission])
+def update_user(request):
+    user = get_object_or_404(CustomUser, id=request.user.id)
+    serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([CheckActiveUserPermission])
+def get_successful_payments(request):
+    user = request.user
+    payments = Payment.objects.filter(user=user, status='successful')
+    serializer = PaymentSerializer(payments, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)

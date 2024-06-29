@@ -220,3 +220,17 @@ class UserTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserToken
         fields = ['id', 'token_count', 'created_at', 'token_type', 'token_uses_ref']
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    country = serializers.PrimaryKeyRelatedField(queryset=Countries.objects.all(), required=False)
+
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'mobile', 'country']
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ['id', 'amount', 'tokens', 'created_at', 'updated_at']
