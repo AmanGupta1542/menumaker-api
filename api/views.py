@@ -26,6 +26,7 @@ from google.auth.transport import requests
 import razorpay
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 # from rest_framework_jwt.settings import api_settings
 
 from .models import *
@@ -595,7 +596,7 @@ def google_login(request):
         else:
             return Response({'error': 'Authentication failed'}, status=401)
     except CustomUser.DoesNotExist:
-        user = CustomUser(email=email)
+        user = CustomUser(email=email, login_provider='google')
         user.set_unusable_password()
         user.save()
 
@@ -610,6 +611,7 @@ def google_login(request):
         'token': access_token,
         'user': serializer.data
     }
+    UserLoginHistory(user=user, login_provider='google').save()
     return response
 
 
@@ -724,3 +726,57 @@ def get_successful_payments(request):
     payments = Payment.objects.filter(user=user, status='successful')
     serializer = PaymentSerializer(payments, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+def verify_facebook_token(token):
+    app_id = '345095785294223'
+    app_secret = '2e2cd31ec04bb45053d8e087beed06e0'
+    
+    url = f'https://graph.facebook.com/debug_token?input_token={token}&access_token={app_id}|{app_secret}'
+    response = requests.get(url)
+    if response.status_code != 200:
+        return None
+
+    data = response.json().get('data')
+    if data and data.get('is_valid'):
+        user_info_url = f'https://graph.facebook.com/me?fields=id,name,email&access_token={token}'
+        user_info_response = requests.get(user_info_url)
+        if user_info_response.status_code == 200:
+            return user_info_response.json()
+    
+    return None
+
+@api_view(['POST'])
+def facebook_login(request):
+    data = json.loads(request.body)
+    print(data)
+    token = request.data.get('authToken', None)
+    if not token:
+        return Response({'error': 'Token is required'}, status=400)
+
+    # userInfo = verify_facebook_token(token)
+    # if not userInfo:
+    #     return Response({'error': 'Invalid token'}, status=400)
+    try:
+        user = CustomUser.objects.get(email=data.get('email'))
+        if user and user.is_active:
+            pass
+        else:
+            return Response({'error': 'Authentication failed'}, status=401)
+    except CustomUser.DoesNotExist:
+        user = CustomUser(email=data.get('email'), first_name=data.get('firstName'), last_name=data.get('lastName'), login_provider='facebook')
+        user.set_unusable_password()
+        user.save()
+
+    serializer = LoginSerializer(instance=user)
+    
+    access_token = create_access_token(user.id)
+    refresh_token = create_refresh_token(user.id)
+    response = Response()
+    expiry_time = datetime.datetime.now() + timedelta(days=7)  # Expires in 7 days
+    response.set_cookie(key='refreshToken', value=refresh_token, expires=expiry_time, samesite='None', secure=True)
+    response.data = {
+        'token': access_token,
+        'user': serializer.data
+    }
+    UserLoginHistory(user=user, login_provider='facebook').save()
+    return response

@@ -22,11 +22,18 @@ class Countries(models.Model):
 
 # Create your models here.
 class CustomUser(AbstractUser):
+    LOGIN_PROVIDER_CHOICES = [
+        ('facebook', 'Facebook'),
+        ('google', 'Google'),
+        ('local', 'Local'),  # For standard username/password login
+        # Add other providers as needed
+    ]
     username = None
     email = models.EmailField(_("email address"), unique=True)
     password = models.CharField(max_length=255)
     country = models.ForeignKey(Countries, on_delete=models.RESTRICT, blank=True, null=True)
     mobile = models.BigIntegerField(blank=True, null=True)
+    login_provider = models.CharField(max_length=50, choices=LOGIN_PROVIDER_CHOICES, default='local')
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -35,6 +42,17 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+class UserLoginHistory(models.Model):
+    LOGIN_PROVIDER_CHOICES = [
+        ('facebook', 'Facebook'),
+        ('google', 'Google'),
+        ('local', 'Local'),  # For standard username/password login
+        # Add other providers as needed
+    ]
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    login_provider = models.CharField(max_length=50, choices=LOGIN_PROVIDER_CHOICES, default='local')
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Payment(models.Model):

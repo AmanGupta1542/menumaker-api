@@ -40,4 +40,5 @@ urlpatterns = [
     path('check-mobile/', check_mobile, name='check-mobile'),
     path('update-user/', update_user, name='update-user'),
     path('successful-payments/', get_successful_payments, name='successful-payments'),
+    path('facebook-login-data/', facebook_login, name='facebook-login-data'),
 ]
