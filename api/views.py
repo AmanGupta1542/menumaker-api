@@ -374,7 +374,7 @@ def mark_cuisine_complete(request):
     try:
         user_cuisine = UserCuisine.objects.get(user=user, is_completed=False)
         total_cuisine_items = CuisineItems.objects.filter(user=user, cuisine=user_cuisine).count()
-        if(total_cuisine_items > 0):
+        if(total_cuisine_items == 0):
             return Response({'error': 'Add atleast one item to complete you menu'}, status=status.HTTP_400_BAD_REQUEST)
         user_cuisine.is_completed = True
         user_cuisine.updated_at = timezone.now()
