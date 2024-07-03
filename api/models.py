@@ -89,6 +89,7 @@ class UserCuisine(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(null=True, blank=True)
     token = models.ForeignKey(UserToken, on_delete=models.CASCADE, related_name='token_uses_ref')
+    is_public = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
         if not self.cuisine:
@@ -97,6 +98,14 @@ class UserCuisine(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class MenuGroupUserRequest(models.Model):
+    menu = models.ForeignKey(UserCuisine, related_name="request_for_menu", on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.RESTRICT, related_name='request_by_user')
+    is_allowed = models.BooleanField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
 
 
 class MealTimes(models.Model):
@@ -128,7 +137,16 @@ class CuisineItems(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'cuisine', 'dish')
+        unique_together = ('cuisine', 'dish')
+
+
+class MenuItemsDeleteHistory(models.Model):
+    cuisine = models.ForeignKey(UserCuisine, on_delete=models.RESTRICT, related_name='belong_to_deleted_menu')
+    add_by_user = models.ForeignKey(CustomUser, on_delete=models.RESTRICT, related_name='dish_add_by_user')
+    remove_by_user = models.ForeignKey(CustomUser, on_delete=models.RESTRICT, related_name='dish_remove_by_user')
+    dish = models.ForeignKey(Dishes, on_delete=models.RESTRICT, related_name='deleted_dish')
+    created_at = models.DateTimeField()
+    deleted_at = models.DateTimeField(auto_now_add=True)
 
 
 class DishImages(models.Model):
