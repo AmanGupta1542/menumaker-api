@@ -28,6 +28,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 # from rest_framework_jwt.settings import api_settings
+from django.db.models.functions import Lower
 
 from .models import *
 from .serializers import *
@@ -956,3 +957,13 @@ def update_group_req_status(request, pk):
         # return Response(serializer.data)
         return Response({'status': "Status updated successfully"}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def get_dishes_by_name(request, name):
+    try:
+        dishes = Dishes.objects.annotate(name_lower=Lower('name')).filter(name_lower__istartswith=name.lower()).order_by('name_lower')
+        serializer = DishesSerializer3(dishes, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

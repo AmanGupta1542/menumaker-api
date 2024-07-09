@@ -47,4 +47,5 @@ urlpatterns = [
     path('menu-group-request/<int:pk>/', menu_group_request, name='menu-group-request'),
     path('menu-group-leave/<int:pk>/', menu_group_leave, name='menu-group-leave'),
     path('update-group-request/<int:pk>/', update_group_req_status, name='update-group-request'),
+    path('get-dish-name-suggestions/<str:name>/', get_dishes_by_name, name='get-dish-name-suggestions'),
 ]

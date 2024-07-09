@@ -188,6 +188,12 @@ class DishesSerializer2(serializers.ModelSerializer):
         fields = ['id', 'name', 'meal_time', 'cuisine']
 
 
+class DishesSerializer3(serializers.ModelSerializer):
+    class Meta:
+        model = Dishes
+        fields = ['id', 'name']
+
+
 class CuisineItemsSerializer2(serializers.ModelSerializer):
     dish = DishesSerializer2()
     user = CustomUserIdNameEmailSerializer()
