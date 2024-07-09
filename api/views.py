@@ -35,6 +35,7 @@ from .authentication import *
 from .paginations import *
 from .custom_permissions import *
 from .user_token import generate_reset_token
+from .utility_functions import decrypt_id
 from .filters import DishesFilter
 
 from django.utils import timezone
@@ -321,18 +322,34 @@ def edit_cuisine_name(request):
 
 @api_view(['POST'])
 @permission_classes([CheckActiveUserPermission])
-def add_dish(request):
+def add_dish(request, pk=None):
     dish_id = request.data.get('dish')
 
     try:
+        if pk is None:
+            user_cuisine = UserCuisine.objects.get(user=request.user, is_completed=False)
+        else:
+            decrypted_pk = decrypt_id(pk)
+            user_cuisine = UserCuisine.objects.get(id=decrypted_pk, is_completed=False)
+            if request.user.id != user_cuisine.user.id:
+                if user_cuisine.is_public == False:
+                    return Response({'error': 'Group is no longer public!'}, status=status.HTTP_400_BAD_REQUEST)
+    except UserCuisine.DoesNotExist:
+        return Response({'error': 'Menu not found or maybe already completed!'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if request.user.id != user_cuisine.user.id:
+        try:
+            # MenuGroupUserRequest.objects.get(user=request.user, is_allowed=True)  # uncomment if apply request and accept/deny modal
+            pass 
+        except MenuGroupUserRequest.DoesNotExist:
+            return Response({'error': 'Only group member or admin can add dishes to this menu'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
         dish = Dishes.objects.get(id=dish_id)
     except Dishes.DoesNotExist:
-        return Response({'error': 'Dish not found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Dish not found!'}, status=status.HTTP_404_NOT_FOUND)
 
-    try:
-        user_cuisine = UserCuisine.objects.get(user=request.user, is_completed=False)
-    except UserCuisine.DoesNotExist:
-        return Response({'error': 'No incomplete cuisine found.'}, status=status.HTTP_400_BAD_REQUEST)
+
 
     dish_data = {
         'dish': dish.id,
@@ -349,18 +366,31 @@ def add_dish(request):
 
 
 @api_view(['GET'])
-@permission_classes([CheckActiveUserPermission])
-def user_cuisine_detail(request, pk=None):
+def user_cuisine_detail(request, pk):
     try:
-        if pk is None:
-            user_cuisine = UserCuisine.objects.get(user=request.user, is_completed=False)
-        else:
-            user_cuisine = UserCuisine.objects.get(pk=pk, user=request.user)
+        # Decrypt the ID
+        decrypted_pk = decrypt_id(pk)
+        user_cuisine = UserCuisine.objects.get(pk=decrypted_pk)
     except UserCuisine.DoesNotExist:
         return Response({'error': 'UserCuisine not found or already completed'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = UserCuisineDetailsSerializer(user_cuisine)
+        serializer = UserCuisineDetailsSerializer(user_cuisine, context={'request': request})
+        return Response(serializer.data)
+    else:
+        return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+
+@api_view(['GET'])
+@permission_classes([CheckActiveUserPermission])
+def user_cuisine_detail2(request):
+    try:
+        user_cuisine = UserCuisine.objects.get(user=request.user, is_completed=False)
+    except UserCuisine.DoesNotExist:
+        return Response({'error': 'UserCuisine not found or already completed'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = UserCuisineDetailsSerializer2(user_cuisine)
         return Response(serializer.data)
     else:
         return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -383,6 +413,23 @@ def mark_cuisine_complete(request):
         return Response({'status': 'Cuisine marked as completed'}, status=status.HTTP_200_OK)
     except UserCuisine.DoesNotExist:
         return Response({'error': 'No incomplete cuisine found for this user'}, status=status.HTTP_404_NOT_FOUND)
+    
+
+@api_view(['PATCH'])
+@permission_classes([CheckActiveUserPermission])
+def mark_cuisine_private_or_public(request):
+    user = request.user
+    
+    try:
+        user_cuisine = UserCuisine.objects.get(user=user, is_completed=False)
+        user_cuisine.is_public = not user_cuisine.is_public
+        user_cuisine.updated_at = timezone.now()
+        user_cuisine.save()
+        
+        return Response({'status': 'Changed menu to '+('public' if user_cuisine.is_public else 'private')}, status=status.HTTP_200_OK)
+    except UserCuisine.DoesNotExist:
+        return Response({'error': 'No incomplete cuisine found for this user'}, status=status.HTTP_404_NOT_FOUND)
+    
 
 class UserCuisineListAPIView(generics.ListAPIView):
     serializer_class = CompleteUserCuisineSerializer
@@ -406,6 +453,19 @@ class DishesListAPIView(generics.ListAPIView):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({"request": self.request})
+        return context
+    
+
+class CDishesListAPIView(generics.ListAPIView):
+    queryset = Dishes.objects.all()
+    serializer_class = DishesSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = DishesFilter
+    pagination_class = MyPageNumberPagination
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request, "pk": decrypt_id(self.kwargs.get('pk'))})
         return context
     
 
@@ -435,16 +495,32 @@ class CuisineItemsListAPIView(APIView):
 class DeleteCuisineItemAPIView(APIView):
     permission_classes = [CheckActiveUserPermission]
 
-    def delete(self, request, dish_id):
+    def post(self, request, dish_id):
         user = request.user
         incomplete_cuisine = UserCuisine.objects.filter(user=user, is_completed=False).first()
         
         if not incomplete_cuisine:
             return Response({'error': 'No incomplete cuisine found for the user'}, status=status.HTTP_400_BAD_REQUEST)
 
+        user_ids = request.data.get('user_ids', None)
+
         try:
-            cuisine_item = CuisineItems.objects.get(user=user, cuisine=incomplete_cuisine, dish=dish_id)
-            cuisine_item.delete()
+            if user_ids is not None:
+                cuisine_items = CuisineItems.objects.filter(cuisine=incomplete_cuisine, dish=dish_id, user__in=user_ids)
+            else:
+                cuisine_items = CuisineItems.objects.filter(cuisine=incomplete_cuisine, dish=dish_id)
+            if cuisine_items.count() == 0:
+                return Response({'error': 'Dish not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            for cuisine_item in cuisine_items:
+                MenuItemsDeleteHistory(
+                    cuisine = cuisine_item.cuisine,
+                    add_by_user = cuisine_item.user,
+                    remove_by_user = user,
+                    dish = cuisine_item.dish,
+                    created_at = cuisine_item.created_at
+                ).save()
+                cuisine_item.delete()
             return Response({'success': 'Cuisine item deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
         except CuisineItems.DoesNotExist:
             return Response({'error': 'Cuisine item not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -780,3 +856,103 @@ def facebook_login(request):
     }
     UserLoginHistory(user=user, login_provider='facebook').save()
     return response
+
+
+@api_view(['POST'])
+@permission_classes([CheckActiveUserPermission])
+def menu_group_request(request, pk):
+    user = request.user
+    
+    try:
+        user_cuisine = UserCuisine.objects.get(pk=pk)
+        if user_cuisine.is_completed:
+            return Response({'error': "Can't send request to completed menu!"}, status=status.HTTP_400_BAD_REQUEST)
+        if not user_cuisine.is_public:
+            return Response({'error': "Can't send request to private menu!"}, status=status.HTTP_400_BAD_REQUEST)
+        if user.id == user_cuisine.user.id:
+            return Response({'error': "You Can't add yourself as a group member!"}, status=status.HTTP_400_BAD_REQUEST)
+        group_user_details = MenuGroupUserRequest.objects.filter(user=user, menu=user_cuisine)
+        if group_user_details.count() == 0:
+            try:
+                leave_obj = MenuGroupLeave.objects.get(user=user, menu=user_cuisine)
+                MenuGroupLeaveHistory(
+                    menu=leave_obj.menu, 
+                    user=leave_obj.user, 
+                    is_allowed=leave_obj.is_allowed,
+                    created_at = leave_obj.created_at,
+                    updated_at = leave_obj.updated_at,
+                    leaving_at = leave_obj.leaving_at
+                    ).save()
+                leave_obj.delete()  # Delete any existing leave request for the same menu
+
+            except MenuGroupLeave.DoesNotExist:
+                pass
+            MenuGroupUserRequest(user=user, menu=user_cuisine).save()
+            return Response({'status': 'Request sent successfully'}, status=status.HTTP_200_OK)
+        else:
+            group_user_detail = group_user_details.first()
+            if group_user_detail.is_allowed == True:
+                return Response({'status': 'You already added to this menu'}, status=status.HTTP_200_OK)
+            if group_user_detail.is_allowed == False:
+                return Response({'status': 'Your request is denied by the menu admin'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'status': 'Your request is pending'}, status=status.HTTP_200_OK)
+    except UserCuisine.DoesNotExist:
+        return Response({'error': 'Menu not found!'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+@api_view(['POST'])
+@permission_classes([CheckActiveUserPermission])
+def menu_group_leave(request, pk):
+    user = request.user
+    
+    try:
+        user_cuisine = UserCuisine.objects.get(pk=pk)
+        if user_cuisine.is_completed:
+            return Response({'error': "Can't send request to completed menu!"}, status=status.HTTP_400_BAD_REQUEST)
+        if not user_cuisine.is_public:
+            return Response({'error': "Can't send request to private menu!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if user.id == user_cuisine.user.id:
+            return Response({'error': "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+        group_user_details = MenuGroupUserRequest.objects.filter(user=user, menu=user_cuisine)
+        if group_user_details.count() == 0:
+            return Response({'error': "Not Found!"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            group_leave_detail = group_user_details.first()
+            MenuGroupLeave(
+                menu=group_leave_detail.menu, 
+                user=group_leave_detail.user, 
+                is_allowed=group_leave_detail.is_allowed,
+                created_at = group_leave_detail.created_at,
+                updated_at = group_leave_detail.updated_at
+                ).save()
+            group_leave_detail.delete()  # Delete any existing leave request for the same menu
+            return Response({'status': 'You successfully leave this group'}, status=status.HTTP_200_OK)
+    except UserCuisine.DoesNotExist:
+        return Response({'error': 'Menu not found!'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['PATCH'])
+@permission_classes([CheckActiveUserPermission])
+def update_group_req_status(request, pk):
+    user = request.user
+    try:
+        request_instance = MenuGroupUserRequest.objects.get(pk=pk)
+    except MenuGroupUserRequest.DoesNotExist:
+        return Response({'error': 'Request not found!'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if user.id != request_instance.menu.user.id:
+        return Response({'error': "You can't update this request!"}, status=status.HTTP_403_FORBIDDEN)
+
+    serializer = MenuGroupUserRequestSerializer(request_instance, data=request.data, partial=True)
+    if serializer.is_valid():
+        request_instance.updated_at = timezone.now()
+        serializer.save()
+        # return Response(serializer.data)
+        return Response({'status': "Status updated successfully"}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

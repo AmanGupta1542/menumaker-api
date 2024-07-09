@@ -108,6 +108,25 @@ class MenuGroupUserRequest(models.Model):
     updated_at = models.DateTimeField(null=True, blank=True)
 
 
+class MenuGroupLeave(models.Model):
+    menu = models.ForeignKey(UserCuisine, related_name="leaved_menu", on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.RESTRICT, related_name='leaved_by_user')
+    is_allowed = models.BooleanField(null=True, blank=True)
+    leaving_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField(null=True, blank=True)
+
+
+class MenuGroupLeaveHistory(models.Model):
+    menu = models.ForeignKey(UserCuisine, related_name="leaved_history_menu", on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.RESTRICT, related_name='leaved_by_user_history')
+    is_allowed = models.BooleanField(null=True, blank=True)
+    history_created_at = models.DateTimeField(auto_now_add=True)
+    leaving_at = models.DateTimeField()
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField(null=True, blank=True)
+
+
 class MealTimes(models.Model):
     meal_name = models.CharField(max_length=100, unique=True)
     quote = models.CharField(max_length=1000, unique=True)
@@ -137,7 +156,7 @@ class CuisineItems(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('cuisine', 'dish')
+        unique_together = ('cuisine', 'dish', 'user')
 
 
 class MenuItemsDeleteHistory(models.Model):

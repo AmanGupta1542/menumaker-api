@@ -3,6 +3,7 @@ from rest_framework import serializers
 from django.utils import timezone
 from .models import *
 from .custom_permissions import CustomBasePermissions
+from .utility_functions import encrypt_id
 
 
 class CustomUserIdNameEmailSerializer(serializers.ModelSerializer):
@@ -83,11 +84,11 @@ class CompleteUserCuisineSerializer(serializers.ModelSerializer):
         fields = ['id', 'cuisine', 'name', 'is_completed', 'created_at', 'updated_at']
         read_only_fields = ['id', 'cuisine', 'name', 'created_at']  # Read-only fields
 
-    def update(self, instance, validated_data):
-        instance.is_completed = True
-        instance.updated_at = timezone.now()
-        instance.save()
-        return instance
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Encrypt the ID
+        representation['id'] = encrypt_id(instance.id)
+        return representation
     
 
 
@@ -165,10 +166,14 @@ class DishesSerializer(serializers.ModelSerializer):
 
     def get_add_in_cuisine(self, obj):
         request = self.context.get('request')
+        cuisine_id = self.context.get('pk', None)
         customBasePermissions = CustomBasePermissions()
         user = customBasePermissions.get_user(request)
         if user and user.is_authenticated:
-            user_cuisine = UserCuisine.objects.filter(user=user, is_completed=False).first()
+            if cuisine_id is None:
+                user_cuisine = UserCuisine.objects.filter(user=user, is_completed=False).first()
+            else:
+                user_cuisine = UserCuisine.objects.filter(pk=cuisine_id).first()
             if user_cuisine:
                 return CuisineItems.objects.filter(user=user, cuisine=user_cuisine, dish=obj).exists()
         return False
@@ -185,23 +190,50 @@ class DishesSerializer2(serializers.ModelSerializer):
 
 class CuisineItemsSerializer2(serializers.ModelSerializer):
     dish = DishesSerializer2()
+    user = CustomUserIdNameEmailSerializer()
 
     class Meta:
         model = CuisineItems
-        fields = ['id', 'dish']
+        fields = ['id', 'dish', 'user']
 
 class UserCuisineDetailsSerializer(serializers.ModelSerializer):
     belong_to_cuisine = CuisineItemsSerializer2(many=True, read_only=True)
-
+    user = CustomUserIdNameEmailSerializer()
     class Meta:
         model = UserCuisine
-        fields = ['id', 'cuisine', 'name', 'is_completed', 'created_at', 'updated_at', 'belong_to_cuisine']
+        fields = ['id', 'cuisine', 'user', 'name', 'is_completed', 'created_at', 'updated_at', 'belong_to_cuisine', 'is_public']
 
-    # def update(self, instance, validated_data):
-    #     instance.is_completed = True
-    #     instance.updated_at = timezone.now()
-    #     instance.save()
-    #     return instance
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Encrypt the ID
+        representation['id'] = encrypt_id(instance.id)
+
+        # Check if the request has user or not
+        request = self.context.get('request', None)
+        customBasePermissions = CustomBasePermissions()
+        user = customBasePermissions.get_user(request)
+        if user and user.is_authenticated:
+            if user.id == instance.user.id:
+                # owners call
+                representation['same_user'] = True
+            else:
+                # other person calls
+                representation['same_user'] = False
+        return representation
+
+class UserCuisineDetailsSerializer2(serializers.ModelSerializer):
+    belong_to_cuisine = CuisineItemsSerializer2(many=True, read_only=True)
+    user = CustomUserIdNameEmailSerializer()
+    class Meta:
+        model = UserCuisine
+        fields = ['id', 'cuisine', 'user', 'name', 'is_completed', 'created_at', 'updated_at', 'belong_to_cuisine', 'is_public']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Encrypt the ID
+        representation['id'] = encrypt_id(instance.id)
+        representation['same_user'] = True
+        return representation
 
 
 class TokenTypeSerializer(serializers.ModelSerializer):
@@ -234,3 +266,14 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = ['id', 'amount', 'tokens', 'created_at', 'updated_at']
+
+
+class MenuGroupUserRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= MenuGroupUserRequest
+        fields= ['is_allowed']
+
+    def validate_is_allowed(self, value):
+        if not isinstance(value, bool):
+            raise serializers.ValidationError("The is_allowed field must be a boolean value (true or false).")
+        return value
