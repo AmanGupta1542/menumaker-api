@@ -48,4 +48,6 @@ urlpatterns = [
     path('menu-group-leave/<int:pk>/', menu_group_leave, name='menu-group-leave'),
     path('update-group-request/<int:pk>/', update_group_req_status, name='update-group-request'),
     path('get-dish-name-suggestions/<str:name>/', get_dishes_by_name, name='get-dish-name-suggestions'),
+    path('get-menus-count/', get_menus_count, name='get-menus-count'),
+    path('get-total-menus-visitors/', get_total_menus_visitors, name='get-total-menus-visitors'),
 ]

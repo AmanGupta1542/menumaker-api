@@ -967,3 +967,19 @@ def get_dishes_by_name(request, name):
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([CheckActiveUserPermission])
+def get_menus_count(request):
+    user = request.user
+    menus_count = UserCuisine.objects.filter(user=user).count()
+    return Response({'total_menus': menus_count}, status=status.HTTP_200_OK)
+
+
+
+@api_view(['GET'])
+def get_total_menus_visitors(request):
+    menus_count = UserCuisine.objects.count()
+    visitors_count = Visitor.objects.count()
+    return Response({'total_menus': menus_count, 'visitors_count':visitors_count}, status=status.HTTP_200_OK)
