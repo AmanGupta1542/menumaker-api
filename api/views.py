@@ -644,7 +644,6 @@ def verify_google_token(token):
 
         # ID token is valid. Get the user's Google Account ID from the decoded token
         userid = idinfo['sub']
-        print(idinfo)
         return idinfo
     except ValueError:
         # Invalid token
@@ -662,10 +661,10 @@ def google_login(request):
         return Response({'error': 'Invalid token'}, status=400)
 
     backend = 'google-oauth2'
-
     email = idinfo.get('email')
     name = idinfo.get('name')
-    
+    first_name = None
+    last_name = None
     try:
         user = CustomUser.objects.get(email=email)
         if user and user.is_active:
@@ -673,7 +672,11 @@ def google_login(request):
         else:
             return Response({'error': 'Authentication failed'}, status=401)
     except CustomUser.DoesNotExist:
-        user = CustomUser(email=email, login_provider='google')
+        name_list = name.split()
+        if len(name_list) >= 1:
+            first_name = name_list[0]
+            last_name =' '.join(name_list[1:]) if len(name_list) > 1 else None
+        user = CustomUser(email=email, first_name=first_name, last_name=last_name, login_provider='google')
         user.set_unusable_password()
         user.save()
 
@@ -840,7 +843,7 @@ def facebook_login(request):
         else:
             return Response({'error': 'Authentication failed'}, status=401)
     except CustomUser.DoesNotExist:
-        user = CustomUser(email=data.get('email'), first_name=data.get('firstName'), last_name=data.get('lastName'), login_provider='facebook')
+        user = CustomUser.objects.get(email=data.get('email'), first_name=data.get('firstName', None), last_name=data.get('lastName', None))
         user.set_unusable_password()
         user.save()
 
