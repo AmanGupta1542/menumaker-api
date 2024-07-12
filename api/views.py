@@ -965,7 +965,7 @@ def update_group_req_status(request, pk):
 @api_view(['GET'])
 def get_dishes_by_name(request, name):
     try:
-        dishes = Dishes.objects.annotate(name_lower=Lower('name')).filter(name_lower__istartswith=name.lower()).order_by('name_lower')
+        dishes = Dishes.objects.annotate(name_lower=Lower('name')).filter(name_lower__icontains=name.lower()).order_by('name_lower')
         serializer = DishesSerializer3(dishes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
