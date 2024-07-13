@@ -283,3 +283,21 @@ class MenuGroupUserRequestSerializer(serializers.ModelSerializer):
         if not isinstance(value, bool):
             raise serializers.ValidationError("The is_allowed field must be a boolean value (true or false).")
         return value
+
+
+class StatesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = States
+        fields = ['id', 'name']  
+
+class CitiesSerializer(serializers.ModelSerializer):
+    state = StatesSerializer()
+    class Meta:
+        model = Cities
+        fields = ['id', 'name', 'state']   
+
+class CaterersSerializer(serializers.ModelSerializer):
+    city = CitiesSerializer()
+    class Meta:
+        model = Caterers
+        fields = '__all__'

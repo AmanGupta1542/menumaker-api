@@ -50,4 +50,5 @@ urlpatterns = [
     path('get-dish-name-suggestions/<str:name>/', get_dishes_by_name, name='get-dish-name-suggestions'),
     path('get-menus-count/', get_menus_count, name='get-menus-count'),
     path('get-total-menus-visitors/', get_total_menus_visitors, name='get-total-menus-visitors'),
+    path('caterers-filter/', CaterersFilterView.as_view(), name='caterers-filter'),
 ]

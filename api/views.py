@@ -986,3 +986,40 @@ def get_total_menus_visitors(request):
     menus_count = UserCuisine.objects.count()
     visitors_count = Visitor.objects.count()
     return Response({'total_menus': menus_count, 'visitors_count':visitors_count}, status=status.HTTP_200_OK)
+
+
+class CaterersFilterView(APIView):
+    def get(self, request, *args, **kwargs):
+        country_id = request.query_params.get('country')
+        state_ids = request.query_params.get('states', '').split(',')
+        city_ids = request.query_params.get('cities', '').split(',')
+
+        if not country_id:
+            return Response({"error": "Country id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Convert state_ids and city_ids to lists of integers, handle empty strings
+            state_ids = [int(state_id) for state_id in state_ids if state_id]
+            city_ids = [int(city_id) for city_id in city_ids if city_id]
+            
+            # Base queryset filtering by country
+            states_queryset = States.objects.filter(country_id=country_id)
+            cities_queryset = Cities.objects.filter(state__country_id=country_id)
+
+            # Further filter by states if provided
+            if state_ids:
+                states_queryset = states_queryset.filter(id__in=state_ids)
+                cities_queryset = cities_queryset.filter(state_id__in=state_ids)
+
+            # Further filter by cities if provided
+            if city_ids:
+                cities_queryset = cities_queryset.filter(id__in=city_ids)
+
+            # Get filtered caterers
+            caterers = Caterers.objects.filter(city__in=cities_queryset) & Caterers.objects.filter(city__state__in=states_queryset)
+            serializer = CaterersSerializer(caterers.distinct(), many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ValueError:
+            return Response({"error": "Invalid state or city IDs"}, status=status.HTTP_400_BAD_REQUEST)
+        
+

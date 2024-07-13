@@ -210,3 +210,28 @@ class Visitor(models.Model):
     
     def __str__(self):
         return f"{self.ip_address} at {self.timestamp}"
+    
+
+class States(models.Model):
+    name = models.CharField(max_length=255)
+    country = models.ForeignKey(Countries, on_delete=models.RESTRICT, related_name='state_country')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Cities(models.Model):
+    name = models.CharField(max_length=255)
+    state = models.ForeignKey(States, on_delete=models.RESTRICT, related_name='city_state')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+
+class Caterers(models.Model):
+    namer = models.CharField(max_length=255)
+    address = models.CharField(max_length=1000)
+    contact = models.BigIntegerField()
+    email = models.EmailField(unique=True)
+    city = models.ForeignKey(Cities, on_delete=models.RESTRICT, related_name='cater_city')
+    lat = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    lon = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.RESTRICT, related_name='cater_insert_by')
+    updated_at = models.DateTimeField(null=True, blank=True)
