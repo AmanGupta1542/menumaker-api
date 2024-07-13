@@ -170,7 +170,7 @@ class MenuItemsDeleteHistory(models.Model):
 
 class DishImages(models.Model):
     dish = models.ForeignKey(Dishes, on_delete=models.RESTRICT, related_name='img_for_dish')
-    image = models.ImageField(upload_to='static/dish_images')
+    image = models.ImageField(upload_to='dish_images')
     alt = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -225,7 +225,7 @@ class Cities(models.Model):
     
 
 class Caterers(models.Model):
-    namer = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
     address = models.CharField(max_length=1000)
     contact = models.BigIntegerField()
     email = models.EmailField(unique=True)
@@ -234,4 +234,15 @@ class Caterers(models.Model):
     lon = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(CustomUser, on_delete=models.RESTRICT, related_name='cater_insert_by')
+    updated_at = models.DateTimeField(null=True, blank=True)
+
+
+class DataEntry(models.Model):
+    menu_file = models.FileField(upload_to='email_pdfs/')
+    cater = models.ForeignKey(Caterers, on_delete=models.RESTRICT, related_name='email_to_cater')
+    email_body = models.CharField(max_length=255)
+    email_prefix = models.CharField(max_length=1000)
+    menu =  models.ForeignKey(UserCuisine, on_delete=models.RESTRICT, related_name='email_menu_to_cater')
+    created_at = models.DateTimeField(auto_now_add=True)
+    email_send = models.BooleanField(default=False)
     updated_at = models.DateTimeField(null=True, blank=True)

@@ -29,6 +29,9 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 # from rest_framework_jwt.settings import api_settings
 from django.db.models.functions import Lower
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from django.core.mail import EmailMultiAlternatives
 
 from .models import *
 from .serializers import *
@@ -989,6 +992,7 @@ def get_total_menus_visitors(request):
 
 
 class CaterersFilterView(APIView):
+    
     def get(self, request, *args, **kwargs):
         country_id = request.query_params.get('country')
         state_ids = request.query_params.get('states', '').split(',')
@@ -1017,9 +1021,86 @@ class CaterersFilterView(APIView):
 
             # Get filtered caterers
             caterers = Caterers.objects.filter(city__in=cities_queryset) & Caterers.objects.filter(city__state__in=states_queryset)
-            serializer = CaterersSerializer(caterers.distinct(), many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            paginator = MyPageNumberPagination()
+            result_page = paginator.paginate_queryset(caterers.distinct(), request)
+            serializer = CaterersSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
         except ValueError:
             return Response({"error": "Invalid state or city IDs"}, status=status.HTTP_400_BAD_REQUEST)
         
+
+
+class CatersEmail(APIView):
+    def post(self, request, pk):
+        menu_id = decrypt_id(pk)
+        serializer = DataEntrySerializer(data=request.data)
+
+        if serializer.is_valid():
+            cater_ids = serializer.validated_data['cater_ids']
+            email_body = serializer.validated_data['email_body']
+            menu_file = serializer.validated_data['menu_file']
+            
+            created_ids = []
+            valid_emails = []
+            valid_email_caters = []
+
+            for cater_id in cater_ids:
+                try:
+                    cater = Caterers.objects.get(id=cater_id)
+                    if cater.email:
+                        try:
+                            validate_email(cater.email)
+                            valid_emails.append(cater.email)
+                            valid_email_caters.append(cater)
+                        except ValidationError:
+                            continue
+
+                    data_entry = DataEntry.objects.create(
+                        menu_file=menu_file,
+                        cater=cater,
+                        email_body=email_body,
+                        email_prefix=str(menu_id),
+                        menu_id=menu_id
+                    )
+                    created_ids.append(data_entry.id)
+                except Caterers.DoesNotExist:
+                    return Response({"error": f"Caterer with id {cater_id} does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Send bulk email
+            if valid_emails:
+                from_email = settings.DEFAULT_FROM_EMAIL
+                subject = "Quotation request for the menu"
+
+                html_content = f"""
+                <html>
+                    <body>
+                        <p>{email_body}</p>
+                    </body>
+                </html>
+                """
+                email = EmailMultiAlternatives(subject, email_body, from_email, valid_emails)
+                email.attach_alternative(html_content, "text/html")
+                email.send()
+
+                # Attach the incoming PDF
+                menu_file.open()
+                email.attach(menu_file.name, menu_file.read(), 'application/pdf')
+                menu_file.close()
+
+                email.send()
+
+                # Update email_send flag for successful emails
+                for cater in valid_email_caters:
+                    cater.email_send = True
+                    cater.save()
+
+            response_data = {
+                "created_ids": created_ids,
+                "email_count": len(valid_emails),
+                "emailed_caters": [cater.email for cater in valid_email_caters]
+            }
+
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 

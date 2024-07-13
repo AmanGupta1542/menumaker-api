@@ -1,6 +1,7 @@
 
 from rest_framework import serializers
 from django.utils import timezone
+import json
 from .models import *
 from .custom_permissions import CustomBasePermissions
 from .utility_functions import encrypt_id
@@ -301,3 +302,29 @@ class CaterersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Caterers
         fields = '__all__'
+
+class NumberArrayField(serializers.Field):
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except json.JSONDecodeError:
+                raise serializers.ValidationError('Invalid JSON format for list of numbers')
+
+        if not isinstance(data, list):
+            raise serializers.ValidationError('Expected a list of numbers')
+
+        for item in data:
+            if not isinstance(item, int):
+                raise serializers.ValidationError('All items must be integers')
+
+        return data
+
+    def to_representation(self, value):
+        return value
+
+class DataEntrySerializer(serializers.ModelSerializer):
+    cater_ids = NumberArrayField()
+    class Meta:
+        model = DataEntry
+        fields = ['menu_file', 'cater_ids', 'email_body']
