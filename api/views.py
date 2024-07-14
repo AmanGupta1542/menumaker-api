@@ -32,6 +32,7 @@ from django.db.models.functions import Lower
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives
+import requests as HttpRequest
 
 from .models import *
 from .serializers import *
@@ -1109,3 +1110,86 @@ class AllCitiesListAPIView(APIView):
         cities = Cities.objects.all().order_by('name')
         serializer = CitiesSerializer2(cities, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+def linkedin_login(linkedInUserData):
+    email = linkedInUserData.get('email')
+    name = linkedInUserData.get('name')
+    first_name = None
+    last_name = None
+    try:
+        user = CustomUser.objects.get(email=email)
+        if user and user.is_active:
+            pass
+        else:
+            return Response({'error': 'Authentication failed'}, status=401)
+    except CustomUser.DoesNotExist:
+        name_list = name.split()
+        if len(name_list) >= 1:
+            first_name = name_list[0]
+            last_name =' '.join(name_list[1:]) if len(name_list) > 1 else None
+        user = CustomUser(email=email, first_name=first_name, last_name=last_name, login_provider='linkedin')
+        user.set_unusable_password()
+        user.save()
+
+    serializer = LoginSerializer(instance=user)
+        
+    access_token = create_access_token(user.id)
+    refresh_token = create_refresh_token(user.id)
+    response = Response()
+    expiry_time = datetime.datetime.now() + timedelta(days=7)  # Expires in 7 days
+    response.set_cookie(key='refreshToken', value=refresh_token, expires=expiry_time, samesite='None', secure=True)
+    response.data = {
+        'token': access_token,
+        'user': serializer.data
+    }
+    UserLoginHistory(user=user, login_provider='linkedin').save()
+    return response
+
+class LinkedInAuthView(APIView):
+    def get(self, request, *args, **kwargs):
+        code = request.query_params.get('code')
+
+        if not code:
+            return Response({"error": "Missing code parameter"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Exchange code for access token
+        access_token_url = "https://www.linkedin.com/oauth/v2/accessToken"
+        access_token_payload = {
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": "http://localhost:4200/linkedinLoginResponse",
+            "client_id": settings.LINKEDIN_CLIENT_ID,
+            "client_secret": settings.LINKEDIN_CLIENT_SECRET
+        }
+
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+
+        token_response = HttpRequest.post(access_token_url, data=access_token_payload, headers=headers)
+        token_data = token_response.json()
+
+        if "access_token" not in token_data:
+            return Response({"error": "Failed to obtain access token"}, status=status.HTTP_400_BAD_REQUEST)
+
+        access_token = token_data['access_token']
+        print(access_token)
+        # Use access token to get user info
+        user_info_url = "https://api.linkedin.com/v2/userinfo"
+        user_info_headers = {
+            "Authorization": f"Bearer {access_token}"
+        }
+
+        user_info_response = HttpRequest.get(user_info_url, headers=user_info_headers)
+        user_info_data = user_info_response.json()
+        
+        
+        
+        if user_info_response.status_code != 200:
+            return Response({"error": "Failed to obtain user info"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            return linkedin_login(user_info_data)
+        except:
+            return Response({"error": "Failed to authenticate user"}, status=status.HTTP_400_BAD_REQUEST)

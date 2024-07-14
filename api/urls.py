@@ -53,4 +53,5 @@ urlpatterns = [
     path('caterers-filter/', CaterersFilterView.as_view(), name='caterers-filter'),
     path('caters-email-send/<str:pk>/', CatersEmail.as_view(), name='caters-email-send'),
     path('cities/', AllCitiesListAPIView.as_view(), name='cities'),
+    path('linkedin-auth/', LinkedInAuthView.as_view(), name='linkedin-auth'),
 ]
