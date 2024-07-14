@@ -52,4 +52,5 @@ urlpatterns = [
     path('get-total-menus-visitors/', get_total_menus_visitors, name='get-total-menus-visitors'),
     path('caterers-filter/', CaterersFilterView.as_view(), name='caterers-filter'),
     path('caters-email-send/<str:pk>/', CatersEmail.as_view(), name='caters-email-send'),
+    path('cities/', AllCitiesListAPIView.as_view(), name='cities'),
 ]

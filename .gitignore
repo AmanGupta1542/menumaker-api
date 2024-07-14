@@ -47,6 +47,7 @@ sdist/
 var/
 menumaker-venv/
 static/
+media/
 *.egg-info/
 .installed.cfg
 *.egg

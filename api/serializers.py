@@ -295,7 +295,12 @@ class CitiesSerializer(serializers.ModelSerializer):
     state = StatesSerializer()
     class Meta:
         model = Cities
-        fields = ['id', 'name', 'state']   
+        fields = ['id', 'name', 'state']
+
+class CitiesSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = Cities
+        fields = ['id', 'name']   
 
 class CaterersSerializer(serializers.ModelSerializer):
     city = CitiesSerializer()

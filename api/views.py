@@ -1104,3 +1104,8 @@ class CatersEmail(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
+class AllCitiesListAPIView(APIView):
+    def get(self, request):
+        cities = Cities.objects.all().order_by('name')
+        serializer = CitiesSerializer2(cities, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
