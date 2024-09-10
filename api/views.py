@@ -141,7 +141,7 @@ class ForgotPasswordView(APIView):
             # Generate password reset token and send email
             # Implement your logic to generate token and send email here
             reset_token = generate_reset_token(user.id)
-            reset_link = f'{settings.FRONTEND_URL}/auth/reset-password?token={reset_token}'
+            reset_link = f'{settings.FRONTEND_URL}/reset-password?token={reset_token}'
             try:
                 send_mail(
                     'Password Reset',
@@ -812,8 +812,8 @@ def get_successful_payments(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 def verify_facebook_token(token):
-    app_id = '345095785294223'
-    app_secret = '2e2cd31ec04bb45053d8e087beed06e0'
+    app_id = '1647665692472940'
+    app_secret = '6dc66f5d4225bfbed9bcab082ce09eb6'
     
     url = f'https://graph.facebook.com/debug_token?input_token={token}&access_token={app_id}|{app_secret}'
     response = requests.get(url)

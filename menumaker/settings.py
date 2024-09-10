@@ -188,7 +188,7 @@ EMAIL_SUBJECT_PREFIX = '[Menumaker Website Api Error] '
 
 # Default sender email address (optional)
 DEFAULT_FROM_EMAIL = env('EMAIL')
-FRONTEND_URL = 'http://localhost:4200/#'
+FRONTEND_URL = 'https://meramenu.in/#'
 
 
 ####################   Email configuration end ######################################
@@ -273,8 +273,8 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',
 )
 
-RAZORPAY_KEY_ID = 'rzp_test_0HeBFJ0U8kNBEv'
-RAZORPAY_KEY_SECRET = 'vdKWjvUag4L702YY9VAlZjo5'
+RAZORPAY_KEY_ID = 'rzp_test_FVx0tUsMMzMBw1'
+RAZORPAY_KEY_SECRET = '7eYa3LysYvPJ3CcFfqb6sbf6'
 
 LINKEDIN_CLIENT_ID = '77dh50dbn5glwo'
 LINKEDIN_CLIENT_SECRET = 'bdUapGNfMyPo7X8X'
