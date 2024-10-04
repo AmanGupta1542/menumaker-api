@@ -66,11 +66,15 @@ class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
 
+class MealTimesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MealTimes
+        fields = ['id', 'meal_name']
 
 class UserCuisineSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserCuisine
-        fields = ['id', 'name', 'cuisine', 'user', 'token']
+        fields = ['id', 'name', 'cuisine', 'user', 'token', 'meal_time']
         read_only_fields = ['cuisine', 'user', 'token']
 
 
@@ -128,11 +132,6 @@ class VisitorSerializer(serializers.ModelSerializer):
         fields = ['ip_address', 'user_agent', 'timestamp']
 
 
-class MealTimesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MealTimes
-        fields = ['id', 'meal_name']
-
 class CuisineSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cuisine
@@ -154,7 +153,6 @@ class DishRecipeSerializer(serializers.ModelSerializer):
         fields = ['recipe']
 
 class DishesSerializer(serializers.ModelSerializer):
-    meal_time = MealTimesSerializer()
     cuisine = CuisineSerializer()
     ingedients_for_dish = DishIngredientsSerializer(read_only=True)
     recipe_for_dish = DishRecipeSerializer(read_only=True)  
@@ -163,7 +161,7 @@ class DishesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dishes
-        fields = ['id', 'name', 'is_active', 'created_at', 'meal_time', 'cuisine', 'add_in_cuisine', 'ingedients_for_dish', 'recipe_for_dish', 'img_for_dish']
+        fields = ['id', 'name', 'is_active', 'created_at', 'cuisine', 'add_in_cuisine', 'ingedients_for_dish', 'recipe_for_dish', 'img_for_dish']
 
     def get_add_in_cuisine(self, obj):
         request = self.context.get('request')
@@ -181,12 +179,11 @@ class DishesSerializer(serializers.ModelSerializer):
     
 
 class DishesSerializer2(serializers.ModelSerializer):
-    meal_time = MealTimesSerializer()
     cuisine = CuisineSerializer()
 
     class Meta:
         model = Dishes
-        fields = ['id', 'name', 'meal_time', 'cuisine']
+        fields = ['id', 'name', 'cuisine']
 
 
 class DishesSerializer3(serializers.ModelSerializer):
@@ -204,11 +201,12 @@ class CuisineItemsSerializer2(serializers.ModelSerializer):
         fields = ['id', 'dish', 'user']
 
 class UserCuisineDetailsSerializer(serializers.ModelSerializer):
+    meal_time = MealTimesSerializer()
     belong_to_cuisine = CuisineItemsSerializer2(many=True, read_only=True)
     user = CustomUserIdNameEmailSerializer()
     class Meta:
         model = UserCuisine
-        fields = ['id', 'cuisine', 'user', 'name', 'is_completed', 'created_at', 'updated_at', 'belong_to_cuisine', 'is_public']
+        fields = ['id', 'cuisine', 'user', 'name', 'meal_time', 'is_completed', 'created_at', 'updated_at', 'belong_to_cuisine', 'is_public']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -229,11 +227,12 @@ class UserCuisineDetailsSerializer(serializers.ModelSerializer):
         return representation
 
 class UserCuisineDetailsSerializer2(serializers.ModelSerializer):
+    meal_time = MealTimesSerializer()
     belong_to_cuisine = CuisineItemsSerializer2(many=True, read_only=True)
     user = CustomUserIdNameEmailSerializer()
     class Meta:
         model = UserCuisine
-        fields = ['id', 'cuisine', 'user', 'name', 'is_completed', 'created_at', 'updated_at', 'belong_to_cuisine', 'is_public']
+        fields = ['id', 'cuisine', 'user', 'name', 'meal_time', 'is_completed', 'created_at', 'updated_at', 'belong_to_cuisine', 'is_public']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

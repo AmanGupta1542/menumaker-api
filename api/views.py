@@ -308,13 +308,30 @@ def create_cuisine(request):
 @api_view(['PATCH'])
 @permission_classes([CheckActiveUserPermission])
 def edit_cuisine_name(request):
-    name = request.data.get('name')
+    name = request.data.get('name', '').strip()
+    meal_time = request.data.get('meal_time', '')
+    meal_time = str(meal_time).strip()
+
+
+    if not name and not meal_time:
+        return Response({'error': "Both fields are required."}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
+        menu_meal_time = MealTimes.objects.get(id=meal_time)
         user_cuisine  = UserCuisine.objects.get(is_completed=False, user=request.user)
         if name is None: return Response({'error': "Name can not be empty"}, status=status.HTTP_400_BAD_REQUEST)
         if not name.strip(): return Response({'error': "Name can not be empty"}, status=status.HTTP_400_BAD_REQUEST)
-        user_cuisine.name = name
+
+        if name and meal_time:
+            user_cuisine.name = name
+            user_cuisine.meal_time = menu_meal_time
+
+        if not name or meal_time:
+            user_cuisine.meal_time = menu_meal_time
+
+        if name or not meal_time:
+            user_cuisine.name = name
+
         user_cuisine.updated_at = timezone.now()
         user_cuisine.save()
         return Response({'status': 'Name updated successfully'}, status=status.HTTP_200_OK)

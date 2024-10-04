@@ -1,0 +1,1267 @@
+{
+	"info": {
+		"_postman_id": "e5eaea13-5b62-4867-8c70-13294f2e4d78",
+		"name": "Menumaker API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18579814",
+		"_collection_link": "https://mistpl-svast-api.postman.co/workspace/New-Team-Workspace~c799645e-398a-4dcf-992f-969e2ce99d0a/collection/18579814-e5eaea13-5b62-4867-8c70-13294f2e4d78?action=share&source=collection_link&creator=18579814"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the response body as JSON\r",
+									"var responseBody = pm.response.json();\r",
+									"\r",
+									"// Extract the token from the response body (replace \"token\" with the actual key in your response)\r",
+									"var token = responseBody.token;\r",
+									"\r",
+									"// Store the token in an environment variable\r",
+									"pm.environment.set(\"access_token\", token);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "// {\r\n//     \"email\": \"utkarsh@test.com\",\r\n//     \"password\": \"utkarsh\"\r\n// }\r\n\r\n{\r\n    \"email\": \"tanu@mistpl.com\",\r\n    \"password\": \"tanu\" \r\n}\r\n\r\n// {\r\n//     \"email\": \"amangupta15423@gmail.com\",\r\n//     \"password\": \"utkarsh\"\r\n// }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"utkarsh@test.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/forgot-password/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"forgot-password",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Reset Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/check-reset-token/eyJ1c2VyX2lkIjogMiwgInRpbWVzdGFtcCI6IDE3MTkwNzk2OTAuOTA5ODg4MywgInRva2VuIjogIjJycDdreF9ITG9weWRESnVwYUgwYlRYYnVmZUNvTjFxOTEzWTJTRXZqNXcifQ==.70fadee74988e3df7591d42630b174abac726c2f1ad342534e932ac2b18deedb",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"check-reset-token",
+								"eyJ1c2VyX2lkIjogMiwgInRpbWVzdGFtcCI6IDE3MTkwNzk2OTAuOTA5ODg4MywgInRva2VuIjogIjJycDdreF9ITG9weWRESnVwYUgwYlRYYnVmZUNvTjFxOTEzWTJTRXZqNXcifQ==.70fadee74988e3df7591d42630b174abac726c2f1ad342534e932ac2b18deedb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"eyJ1c2VyX2lkIjogMiwgInRpbWVzdGFtcCI6IDE3MTkwNzk2OTAuOTA5ODg4MywgInRva2VuIjogIjJycDdreF9ITG9weWRESnVwYUgwYlRYYnVmZUNvTjFxOTEzWTJTRXZqNXcifQ==.70fadee74988e3df7591d42630b174abac726c2f1ad342534e932ac2b18deedb\",\r\n    \"password\": \"utkarsh\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/reset-password/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"reset-password",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Parse the response body as JSON\r",
+									"var responseBody = pm.response.json();\r",
+									"\r",
+									"// Extract the token from the response body (replace \"token\" with the actual key in your response)\r",
+									"var token = responseBody.token;\r",
+									"\r",
+									"// Store the token in an environment variable\r",
+									"pm.environment.set(\"access_token\", token);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"old_password\": \"utkarsh\",\r\n    \"new_password\": \"utkarshdixit\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/change-password/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"change-password",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Google Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n \"token\": \"eyJhbGciOiJSUzI1NiIsImtpZCI6IjJhZjkwZTg3YmUxNDBjMjAwMzg4OThhNmVmYTExMjgzZGFiNjAzMWQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIyNjYzNTg0NjY2ODctZm5jaTVyaml2b3BydjJjbnJzczhiaG1nZHBpbmdub2guYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiIyNjYzNTg0NjY2ODctZm5jaTVyaml2b3BydjJjbnJzczhiaG1nZHBpbmdub2guYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDA0MDg4NTEzMjU4NjkzNTg3MjAiLCJlbWFpbCI6ImFtYW5ndXB0YTE1NDJAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5iZiI6MTcxOTUxMTI3NiwibmFtZSI6IkFtYW4gR3VwdGEiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSXhvVVlfTVU1NEtrTXJyTEVHWnhlZ2VlWTVyVkFJemlqWFVhOFR2VzR1YldIYWpzOD1zOTYtYyIsImdpdmVuX25hbWUiOiJBbWFuIiwiZmFtaWx5X25hbWUiOiJHdXB0YSIsImlhdCI6MTcxOTUxMTU3NiwiZXhwIjoxNzE5NTE1MTc2LCJqdGkiOiJiYjdmMWQyNzk5ZjlkMzU3MDM5ZGU3M2EzYzk0OWI0ZTE5YWZlODA0In0.Pf3-6_dtk9mJkvXHq3pbmWAlV6sLMHuySm8PGDHv-Fm7bXKMLqYzlcDkjmMyBH4E8Ir15-yBQpvJwuPp04bX3NwzW23QqBuTu0rl9zFOCvYmyowRlTOhdxheBYcLyV6P-CvZGSB6MrdF4G1C3gOLqoATrrlkOIxcDne-QnGq9i-Xvx-6lT2mkgxGiVygh3KLY6jakPevCQb35CFgRh49QbGQerax9dATiiXn2G6lBjRSQ_aykA9fklSgjyl0QsoeEwIrpqbcFTKj7buYg5u7QvpoIif4eOk3N9AUaxQjkyV80aANYlhfUZsom0xOK28IWgv1bDszXh0nuP7dSuKAow\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/google-login-data/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"google-login-data",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Google idToken",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://oauth2.googleapis.com/tokeninfo?id_token=eyJhbGciOiJSUzI1NiIsImtpZCI6IjJhZjkwZTg3YmUxNDBjMjAwMzg4OThhNmVmYTExMjgzZGFiNjAzMWQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIyNjYzNTg0NjY2ODctZm5jaTVyaml2b3BydjJjbnJzczhiaG1nZHBpbmdub2guYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiIyNjYzNTg0NjY2ODctZm5jaTVyaml2b3BydjJjbnJzczhiaG1nZHBpbmdub2guYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDA0MDg4NTEzMjU4NjkzNTg3MjAiLCJlbWFpbCI6ImFtYW5ndXB0YTE1NDJAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5iZiI6MTcxOTUxMTI3NiwibmFtZSI6IkFtYW4gR3VwdGEiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSXhvVVlfTVU1NEtrTXJyTEVHWnhlZ2VlWTVyVkFJemlqWFVhOFR2VzR1YldIYWpzOD1zOTYtYyIsImdpdmVuX25hbWUiOiJBbWFuIiwiZmFtaWx5X25hbWUiOiJHdXB0YSIsImlhdCI6MTcxOTUxMTU3NiwiZXhwIjoxNzE5NTE1MTc2LCJqdGkiOiJiYjdmMWQyNzk5ZjlkMzU3MDM5ZGU3M2EzYzk0OWI0ZTE5YWZlODA0In0.Pf3-6_dtk9mJkvXHq3pbmWAlV6sLMHuySm8PGDHv-Fm7bXKMLqYzlcDkjmMyBH4E8Ir15-yBQpvJwuPp04bX3NwzW23QqBuTu0rl9zFOCvYmyowRlTOhdxheBYcLyV6P-CvZGSB6MrdF4G1C3gOLqoATrrlkOIxcDne-QnGq9i-Xvx-6lT2mkgxGiVygh3KLY6jakPevCQb35CFgRh49QbGQerax9dATiiXn2G6lBjRSQ_aykA9fklSgjyl0QsoeEwIrpqbcFTKj7buYg5u7QvpoIif4eOk3N9AUaxQjkyV80aANYlhfUZsom0xOK28IWgv1bDszXh0nuP7dSuKAow",
+							"protocol": "https",
+							"host": [
+								"oauth2",
+								"googleapis",
+								"com"
+							],
+							"path": [
+								"tokeninfo"
+							],
+							"query": [
+								{
+									"key": "id_token",
+									"value": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjJhZjkwZTg3YmUxNDBjMjAwMzg4OThhNmVmYTExMjgzZGFiNjAzMWQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIyNjYzNTg0NjY2ODctZm5jaTVyaml2b3BydjJjbnJzczhiaG1nZHBpbmdub2guYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiIyNjYzNTg0NjY2ODctZm5jaTVyaml2b3BydjJjbnJzczhiaG1nZHBpbmdub2guYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDA0MDg4NTEzMjU4NjkzNTg3MjAiLCJlbWFpbCI6ImFtYW5ndXB0YTE1NDJAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5iZiI6MTcxOTUxMTI3NiwibmFtZSI6IkFtYW4gR3VwdGEiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSXhvVVlfTVU1NEtrTXJyTEVHWnhlZ2VlWTVyVkFJemlqWFVhOFR2VzR1YldIYWpzOD1zOTYtYyIsImdpdmVuX25hbWUiOiJBbWFuIiwiZmFtaWx5X25hbWUiOiJHdXB0YSIsImlhdCI6MTcxOTUxMTU3NiwiZXhwIjoxNzE5NTE1MTc2LCJqdGkiOiJiYjdmMWQyNzk5ZjlkMzU3MDM5ZGU3M2EzYzk0OWI0ZTE5YWZlODA0In0.Pf3-6_dtk9mJkvXHq3pbmWAlV6sLMHuySm8PGDHv-Fm7bXKMLqYzlcDkjmMyBH4E8Ir15-yBQpvJwuPp04bX3NwzW23QqBuTu0rl9zFOCvYmyowRlTOhdxheBYcLyV6P-CvZGSB6MrdF4G1C3gOLqoATrrlkOIxcDne-QnGq9i-Xvx-6lT2mkgxGiVygh3KLY6jakPevCQb35CFgRh49QbGQerax9dATiiXn2G6lBjRSQ_aykA9fklSgjyl0QsoeEwIrpqbcFTKj7buYg5u7QvpoIif4eOk3N9AUaxQjkyV80aANYlhfUZsom0xOK28IWgv1bDszXh0nuP7dSuKAow"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"first_name\": \"test3\",\r\n    \"last_name\": \"test3\",\r\n    \"mobile\": 8334567891,\r\n    \"country\": 103\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/update-user/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"update-user",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"first_name\": \"test3\",\r\n    \"last_name\": \"test3\",\r\n    \"mobile\": 8334567891,\r\n    \"country\": 103\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/update-user/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"update-user",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FB Token Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://graph.facebook.com/debug_token?input_token=EAAE53NZByKY8BOwc8aEF9n4wjhk55mGRBNoUYFy4XrZBRMEvP7feZBLF6aEZAzHhCAbAyCS6HFV8ZAzdBx9BSxZB8QI6eRUWCnHKxJLQcvAcZANFWSUqSQ17qACG5TxxLhuX6OObiY8YnnK5fDUjgdbCkRIFoRZAZAeoiiim4EyCVoirmQQGMJnGDAQZCKhgZDZD&access_token=345095785294223|2e2cd31ec04bb45053d8e087beed06e0",
+							"protocol": "https",
+							"host": [
+								"graph",
+								"facebook",
+								"com"
+							],
+							"path": [
+								"debug_token"
+							],
+							"query": [
+								{
+									"key": "input_token",
+									"value": "EAAE53NZByKY8BOwc8aEF9n4wjhk55mGRBNoUYFy4XrZBRMEvP7feZBLF6aEZAzHhCAbAyCS6HFV8ZAzdBx9BSxZB8QI6eRUWCnHKxJLQcvAcZANFWSUqSQ17qACG5TxxLhuX6OObiY8YnnK5fDUjgdbCkRIFoRZAZAeoiiim4EyCVoirmQQGMJnGDAQZCKhgZDZD"
+								},
+								{
+									"key": "access_token",
+									"value": "345095785294223|2e2cd31ec04bb45053d8e087beed06e0"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "FB User Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://graph.facebook.com/me?fields=id,name,email&access_token=EAAE53NZByKY8BOwc8aEF9n4wjhk55mGRBNoUYFy4XrZBRMEvP7feZBLF6aEZAzHhCAbAyCS6HFV8ZAzdBx9BSxZB8QI6eRUWCnHKxJLQcvAcZANFWSUqSQ17qACG5TxxLhuX6OObiY8YnnK5fDUjgdbCkRIFoRZAZAeoiiim4EyCVoirmQQGMJnGDAQZCKhgZDZD",
+							"protocol": "https",
+							"host": [
+								"graph",
+								"facebook",
+								"com"
+							],
+							"path": [
+								"me"
+							],
+							"query": [
+								{
+									"key": "fields",
+									"value": "id,name,email"
+								},
+								{
+									"key": "access_token",
+									"value": "EAAE53NZByKY8BOwc8aEF9n4wjhk55mGRBNoUYFy4XrZBRMEvP7feZBLF6aEZAzHhCAbAyCS6HFV8ZAzdBx9BSxZB8QI6eRUWCnHKxJLQcvAcZANFWSUqSQ17qACG5TxxLhuX6OObiY8YnnK5fDUjgdbCkRIFoRZAZAeoiiim4EyCVoirmQQGMJnGDAQZCKhgZDZD"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Menus",
+			"item": []
+		},
+		{
+			"name": "Tokens",
+			"item": [
+				{
+					"name": "Token Purchase History",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/successful-payments/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"successful-payments",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Get Loggedin User",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/user",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/users/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"first_name\": \"Tanu\",\r\n  \"last_name\": \"Yadav\",\r\n  \"email\": \"tanu@mistpl.com\",\r\n  \"password\": \"tanu\",\r\n  \"country\": 103,\r\n  \"mobile\": 7000556126,\r\n  \"is_staff\": true,\r\n  \"is_superuser\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/register/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"register",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Cuisine",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Celebration2\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/create-cuisine/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"create-cuisine",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Cuisine Name",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"New Menu\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/edit-cuisine-name/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"edit-cuisine-name",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Dish in Cuisine",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"dish\": 243\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/add-dish/27/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"add-dish",
+						"27",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Cuisine Detail",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/user-cuisine/12/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"user-cuisine",
+						"12",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Cuisine Details",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/user-cuisine/hDGh5FhpXzr61pGigo5CIw==",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"user-cuisine",
+						"hDGh5FhpXzr61pGigo5CIw=="
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Cuisines List",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/user-cuisine-list/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"user-cuisine-list",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Dishes Filter",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/dishes?meal_time=hightea&cuisine=Indian",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"dishes"
+					],
+					"query": [
+						{
+							"key": "meal_time",
+							"value": "hightea"
+						},
+						{
+							"key": "cuisine",
+							"value": "Indian"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cuisine Items",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/cuisine-items/?cuisine_id=13",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"cuisine-items",
+						""
+					],
+					"query": [
+						{
+							"key": "cuisine_id",
+							"value": "13"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Cuisine Item",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_ids\": [1]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/delete-cuisine-item/243/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"delete-cuisine-item",
+						"243",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Dish Details",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/dish-details/243/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"dish-details",
+						"243",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Countries",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/countries",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"countries"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Tokens",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/get-total-tokens/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"get-total-tokens",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Token History",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/get-tokens-history/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"get-tokens-history",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Email Exist",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"amangupta1542@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/check-email/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"check-email",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Mobile exist",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"mobile\": 8319598413\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/check-mobile/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"check-mobile",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Complete User Cuisine",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/mark-cuisine-complete/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"mark-cuisine-complete",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Group User Request",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"is_allowed\": false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/update-group-request/4/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"update-group-request",
+						"4",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Menu Group Leave",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/menu-group-leave/27/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"menu-group-leave",
+						"27",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Menu Group Request",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/menu-group-request/27/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"menu-group-request",
+						"27",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change Menu Status",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/change-menu-status/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"change-menu-status",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Dish Name Suggestions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/get-dish-name-suggestions/u/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"get-dish-name-suggestions",
+						"u",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Caterers Filter",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/caterers-filter/?country=103&cities=2,3,1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"caterers-filter",
+						""
+					],
+					"query": [
+						{
+							"key": "country",
+							"value": "103"
+						},
+						{
+							"key": "cities",
+							"value": "2,3,1"
+						},
+						{
+							"key": "states",
+							"value": "11",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Caters Email Send",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "menu_file",
+							"type": "file",
+							"src": "/C:/Users/admin/Downloads/products.pdf"
+						},
+						{
+							"key": "cater_ids",
+							"value": "[2,3]",
+							"type": "text"
+						},
+						{
+							"key": "email_body",
+							"value": "abc",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/api/caters-email-send/M5M5LMfnpTalQ0bo8cohkw==/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"caters-email-send",
+						"M5M5LMfnpTalQ0bo8cohkw==",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Cities",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/cities",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"cities"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

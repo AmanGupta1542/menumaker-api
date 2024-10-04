@@ -54,6 +54,11 @@ class UserLoginHistory(models.Model):
     login_provider = models.CharField(max_length=50, choices=LOGIN_PROVIDER_CHOICES, default='local')
     created_at = models.DateTimeField(auto_now_add=True)
 
+class MealTimes(models.Model):
+    meal_name = models.CharField(max_length=100, unique=True)
+    quote = models.CharField(max_length=1000, unique=True)
+    description = models.CharField(max_length=1000, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class Payment(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -90,6 +95,7 @@ class UserCuisine(models.Model):
     updated_at = models.DateTimeField(null=True, blank=True)
     token = models.ForeignKey(UserToken, on_delete=models.CASCADE, related_name='token_uses_ref')
     is_public = models.BooleanField(default=True)
+    meal_time = models.ForeignKey(MealTimes, on_delete=models.RESTRICT, related_name='user_cuisine_meal_time')
 
     def save(self, *args, **kwargs):
         if not self.cuisine:
@@ -99,6 +105,11 @@ class UserCuisine(models.Model):
     def __str__(self):
         return self.name
     
+# class UserCuisineMealTime(models.Model):
+#     meal_time = models.ForeignKey(MealTimes, on_delete=models.RESTRICT, related_name='user_cuisine_meal_times')
+#     add_by = models.ForeignKey(CustomUser, on_delete=models.RESTRICT, related_name='meal_time_cuisine_add_by')
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(null=True, blank=True)
 
 class MenuGroupUserRequest(models.Model):
     menu = models.ForeignKey(UserCuisine, related_name="request_for_menu", on_delete=models.CASCADE)
@@ -127,13 +138,6 @@ class MenuGroupLeaveHistory(models.Model):
     updated_at = models.DateTimeField(null=True, blank=True)
 
 
-class MealTimes(models.Model):
-    meal_name = models.CharField(max_length=100, unique=True)
-    quote = models.CharField(max_length=1000, unique=True)
-    description = models.CharField(max_length=1000, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
 class Cuisine(models.Model):
     name = models.CharField(max_length=255, unique=True)
     country = models.ForeignKey(Countries, on_delete=models.RESTRICT, related_name='cuisine_country')
@@ -150,6 +154,7 @@ class Dishes(models.Model):
 
     
 class CuisineItems(models.Model):
+    # meal_time = models.ForeignKey(UserCuisineMealTime, on_delete=models.RESTRICT, related_name='cuisine_meal_time_for_user')
     user = models.ForeignKey(CustomUser, on_delete=models.RESTRICT, related_name='cuisine_items_for_user')
     cuisine = models.ForeignKey(UserCuisine, on_delete=models.RESTRICT, related_name='belong_to_cuisine')
     dish = models.ForeignKey(Dishes, on_delete=models.RESTRICT, related_name='for_dish')
