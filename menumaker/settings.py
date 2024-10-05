@@ -41,7 +41,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
     "https://127.0.0.1:4200",
     "https://localhost:4200",
-    "http://127.0.0.1:8080"
+    "http://127.0.0.1:8080",
+    "https://meramenu.in"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -169,25 +170,25 @@ STATICFILES_DIRS = [STATIC_DIR]
 ####################   Email configuration start    ######################################
 
 # SMTP email settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # Backend for sending emails via SMTP
+# Email configuration in settings.py
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = env('EMAIL_HOST')  # Your outgoing mail server
+EMAIL_PORT = env('EMAIL_PORT')  # SMTP port for SSL
+EMAIL_USE_TLS = env('EMAIL_USE_TLS')
+EMAIL_HOST_USER = env('EMAIL')  # Your email account
+EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD')  # Your email account password
+DEFAULT_FROM_EMAIL = env('EMAIL')  # Default sender email address
 
-# SMTP server details
-EMAIL_HOST = 'smtp.gmail.com'           # SMTP server address
-EMAIL_PORT = 587                        # SMTP port (typically 587 for TLS)
-EMAIL_USE_TLS = True                    # Whether to use TLS encryption
-EMAIL_HOST_USER = env('EMAIL')  # SMTP username
-EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD')  # SMTP password
 
 # Email address to send error notifications to (for 'AdminEmailHandler' handler)
 ADMINS = [
-    ('Aman Gupta', 'amangupta1542@gmail.com'),
+    ('Aman Gupta', env('EMAIL')),
 ]
 
 # Subject prefix for email notifications
 EMAIL_SUBJECT_PREFIX = '[Menumaker Website Api Error] '
 
 # Default sender email address (optional)
-DEFAULT_FROM_EMAIL = env('EMAIL')
 FRONTEND_URL = 'https://meramenu.in/#'
 
 
@@ -261,8 +262,8 @@ AUTHENTICATION_BACKENDS = (
     'social_core.backends.google.GoogleOAuth2',
 )
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '266358466687-fnci5rjivoprv2cnrss8bhmgdpingnoh.apps.googleusercontent.com' # client Id
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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' # client secret
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_user',
@@ -273,8 +274,8 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.user_details',
 )
 
-RAZORPAY_KEY_ID = 'rzp_test_FVx0tUsMMzMBw1'
-RAZORPAY_KEY_SECRET = '7eYa3LysYvPJ3CcFfqb6sbf6'
+RAZORPAY_KEY_ID = env('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = env('RAZORPAY_KEY_SECRET')
 
-LINKEDIN_CLIENT_ID = '77dh50dbn5glwo'
-LINKEDIN_CLIENT_SECRET = 'bdUapGNfMyPo7X8X'
+LINKEDIN_CLIENT_ID = env('LINKEDIN_CLIENT_ID')
+LINKEDIN_CLIENT_SECRET = env('LINKEDIN_CLIENT_SECRET')
