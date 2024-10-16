@@ -84,9 +84,10 @@ class CuisineItemsSerializer(serializers.ModelSerializer):
         fields = ['dish', 'user', 'cuisine']
 
 class CompleteUserCuisineSerializer(serializers.ModelSerializer):
+    meal_time = MealTimesSerializer()
     class Meta:
         model = UserCuisine
-        fields = ['id', 'cuisine', 'name', 'is_completed', 'created_at', 'updated_at']
+        fields = ['id', 'cuisine', 'name', 'meal_time', 'is_completed', 'created_at', 'updated_at']
         read_only_fields = ['id', 'cuisine', 'name', 'created_at']  # Read-only fields
 
     def to_representation(self, instance):
