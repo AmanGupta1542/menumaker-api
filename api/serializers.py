@@ -249,9 +249,10 @@ class TokenTypeSerializer(serializers.ModelSerializer):
         fields = ['type']  
 
 class UserCuisineSerializer2(serializers.ModelSerializer):
+    meal_time = MealTimesSerializer()
     class Meta:
         model = UserCuisine
-        fields = ['id', 'name', 'cuisine', 'is_completed', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'cuisine', 'is_completed', 'meal_time', 'created_at', 'updated_at']
 
 class UserTokenSerializer(serializers.ModelSerializer):
     token_type = TokenTypeSerializer()
