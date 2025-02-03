@@ -1058,10 +1058,11 @@ class CatersEmail(APIView):
             email_body = serializer.validated_data['email_body']
             menu_file = serializer.validated_data['menu_file']
             
-            created_ids = []
+            data_entry_objs = []
             valid_emails = []
             valid_email_caters = []
-
+            email_sent = False
+            
             for cater_id in cater_ids:
                 try:
                     cater = Caterers.objects.get(id=cater_id)
@@ -1080,7 +1081,7 @@ class CatersEmail(APIView):
                         email_prefix=str(menu_id),
                         menu_id=menu_id
                     )
-                    created_ids.append(data_entry.id)
+                    data_entry_objs.append(data_entry)
                 except Caterers.DoesNotExist:
                     return Response({"error": f"Caterer with id {cater_id} does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1096,7 +1097,13 @@ class CatersEmail(APIView):
                     </body>
                 </html>
                 """
+                # Define CC and BCC lists
+                cc_emails = [settings.EMAIL_CC]  # Add CC emails here
+                bcc_emails = ["bcc@example.com"]  # Add BCC emails here
                 email = EmailMultiAlternatives(subject, email_body, from_email, valid_emails)
+                print(cc_emails)
+                email.cc = cc_emails
+                # email.bcc = bcc_emails
                 email.attach_alternative(html_content, "text/html")
                 email.send()
 
@@ -1106,16 +1113,18 @@ class CatersEmail(APIView):
                 menu_file.close()
 
                 email.send()
-
+                email_sent = True
                 # Update email_send flag for successful emails
-                for cater in valid_email_caters:
-                    cater.email_send = True
-                    cater.save()
+                
+                for data_entry_for_email in data_entry_objs:
+                    data_entry_for_email.email_send = True
+                    data_entry_for_email.save()
 
             response_data = {
-                "created_ids": created_ids,
+                "data_entry_objs": [created_id.id for created_id in data_entry_objs],
                 "email_count": len(valid_emails),
-                "emailed_caters": [cater.email for cater in valid_email_caters]
+                "emailed_caters": [cater.email for cater in valid_email_caters],
+                "email_sent": email_sent
             }
 
             return Response(response_data, status=status.HTTP_201_CREATED)
