@@ -179,6 +179,7 @@ EMAIL_HOST_USER = env('EMAIL')  # Your email account
 EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD')  # Your email account password
 DEFAULT_FROM_EMAIL = env('EMAIL')  # Default sender email address
 EMAIL_CC = env('EMAIL_CC')
+DEFAULT_FREE_TOKEN = env('DEFAULT_FREE_TOKEN')
 
 # Email address to send error notifications to (for 'AdminEmailHandler' handler)
 ADMINS = [
