@@ -55,3 +55,12 @@ class CheckActiveUserPermission(CustomBasePermissions):
             return True
         return False
     
+class CheckActiveUserPermission2(CustomBasePermissions):
+    def has_permission(self, request, view):
+        user = self.get_user(request)
+        if user:
+            request.user = user
+        else:
+            request.user = None
+        return True
+    

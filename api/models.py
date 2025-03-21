@@ -26,6 +26,7 @@ class CustomUser(AbstractUser):
         ('facebook', 'Facebook'),
         ('google', 'Google'),
         ('local', 'Local'),  # For standard username/password login
+        ('guest', 'Guest')
         # Add other providers as needed
     ]
     username = None
@@ -48,6 +49,7 @@ class UserLoginHistory(models.Model):
         ('facebook', 'Facebook'),
         ('google', 'Google'),
         ('local', 'Local'),  # For standard username/password login
+        ('guest', 'Guest')
         # Add other providers as needed
     ]
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)

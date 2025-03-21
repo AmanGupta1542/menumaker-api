@@ -49,6 +49,11 @@ logger = logging.getLogger("api.views")
 
 RESET_TOKEN_EXPIRY_MINUTES = 30
 
+from faker import Faker
+
+# Initialize Faker instance
+fake = Faker()
+
 class RegisterAPIView(APIView):
     def post(self, request):
         serializer = UserSerializer(data = request.data)
@@ -87,6 +92,20 @@ class LoginAPIView(APIView):
             'token': access_token,
             'user': serializer.data
         }
+        
+        if 'menu_id' in request.data:
+            try:
+                # Decrypt the ID
+                decrypted_pk = decrypt_id(request.data['menu_id'])
+                user_cuisine = UserCuisine.objects.get(pk=decrypted_pk)
+                response.data['menu_id'] = request.data['menu_id']
+            except UserCuisine.DoesNotExist:
+                # return Response({'error': 'UserCuisine not found or already completed'}, status=status.HTTP_404_NOT_FOUND)
+                pass # due to some error menu id is not valid or may be currepted
+            except Exception as e:
+                # print('error', e)
+                pass # due to some error menu id is not valid or may be currepted
+        
         print('response given')
         return response
     
@@ -341,30 +360,90 @@ def edit_cuisine_name(request):
         print(e)
         return Response({'error':'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+def create_guest_user(request):
+    # Generate unique user details
+    first_name = fake.unique.first_name()
+    last_name = fake.unique.last_name()
+    email = f"{first_name.lower()}.{last_name.lower()}{fake.unique.random_number(9)}@example.com"
+
+    try:
+        user = CustomUser.objects.get(email=email)
+        if user and user.is_active:
+            pass
+        else:
+            return Response({'error': 'Authentication failed'}, status=401)
+    except CustomUser.DoesNotExist:
+        user = CustomUser(email=email, first_name=first_name, last_name=last_name, login_provider='guest')
+        user.set_unusable_password()
+        user.save()
+
+    serializer = LoginSerializer(instance=user)
+        
+    access_token = create_access_token(user.id)
+    refresh_token = create_refresh_token(user.id)
+    response = Response()
+    expiry_time = datetime.datetime.now() + timedelta(days=7)  # Expires in 7 days
+    response.set_cookie(key='refreshToken', value=refresh_token, expires=expiry_time, samesite='None', secure=True)
+    response.data = {
+        'token': access_token,
+        'user': serializer.data
+    }
+
+    if 'menu_id' in request.data:
+        try:
+            # Decrypt the ID
+            decrypted_pk = decrypt_id(request.data['menu_id'])
+            user_cuisine = UserCuisine.objects.get(pk=decrypted_pk)
+            response.data['menu_id'] = request.data['menu_id']
+        except UserCuisine.DoesNotExist:
+            # return Response({'error': 'UserCuisine not found or already completed'}, status=status.HTTP_404_NOT_FOUND)
+            pass # due to some error menu id is not valid or may be currepted
+        except Exception as e:
+            # print('error', e)
+            pass # due to some error menu id is not valid or may be currepted
+
+    UserLoginHistory(user=user, login_provider='guest').save()
+    return user, response
 
 @api_view(['POST'])
-@permission_classes([CheckActiveUserPermission])
+@permission_classes([CheckActiveUserPermission2])
 def add_dish(request, pk=None):
     dish_id = request.data.get('dish')
-
+    response_obj = None
+    print(request.user)
+    if request.user == None:
+        request.user, response_obj = create_guest_user(request)
+    # if request.user:
+    #     try:
+    #         UserCuisine.objects.get(user=request.user, is_completed=False)
+    #     except: 
+    #         return Response({'error': 'User Not Found!'}, status=status.HTTP_404_NOT_FOUND)
+    # return Response({'error': 'Group is no longer public!'}, status=status.HTTP_400_BAD_REQUEST)
     try:
         if pk is None:
             user_cuisine = UserCuisine.objects.get(user=request.user, is_completed=False)
         else:
             decrypted_pk = decrypt_id(pk)
             user_cuisine = UserCuisine.objects.get(id=decrypted_pk, is_completed=False)
-            if request.user.id != user_cuisine.user.id:
+            if request.user.id == None or (request.user.id != user_cuisine.user.id):
+                # if logged in user is not the owner of the Menu, then check this condition that menu is public or not. 
+                # if it is not public then logged in user is not able to add the this in this menu.
+                # if logged in user == menu user(owner) then no need to check public or private.
+                # if no one is loggedin user( means guest whoes id is None), if guest user, then also check if menu is public or not.
                 if user_cuisine.is_public == False:
                     return Response({'error': 'Group is no longer public!'}, status=status.HTTP_400_BAD_REQUEST)
     except UserCuisine.DoesNotExist:
         return Response({'error': 'Menu not found or maybe already completed!'}, status=status.HTTP_400_BAD_REQUEST)
+    except: 
+        # because an unauthorized user(not logged in) try to add dish in unknown menu(without menu id). 
+        return Response({'error': 'User Not Found!'}, status=status.HTTP_404_NOT_FOUND)
     
-    if request.user.id != user_cuisine.user.id:
-        try:
-            # MenuGroupUserRequest.objects.get(user=request.user, is_allowed=True)  # uncomment if apply request and accept/deny modal
-            pass 
-        except MenuGroupUserRequest.DoesNotExist:
-            return Response({'error': 'Only group member or admin can add dishes to this menu'}, status=status.HTTP_400_BAD_REQUEST)
+    # if request.user.id != user_cuisine.user.id:
+    #     try:
+    #         # MenuGroupUserRequest.objects.get(user=request.user, is_allowed=True)  # uncomment if apply request and accept/deny modal
+    #         pass 
+    #     except MenuGroupUserRequest.DoesNotExist:
+    #         return Response({'error': 'Only group member or admin can add dishes to this menu'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
         dish = Dishes.objects.get(id=dish_id)
@@ -382,7 +461,12 @@ def add_dish(request, pk=None):
     serializer = CuisineItemsSerializer(data=dish_data)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if response_obj is not None:
+            response_obj.data.update({"message": serializer.data}) # Response(serializer.data, status=status.HTTP_201_CREATED)
+            response_obj.status = status.HTTP_201_CREATED
+            return response_obj
+        else:
+            return Response({"message": serializer.data}, status=status.HTTP_201_CREATED)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
